@@ -1,0 +1,9 @@
+{
+  "name": "lister_professionnels",
+  "description": "Liste les professionnels (identifiant, nom) et les types de rendez-vous qu'ils proposent. À utiliser pour obtenir le professionnel_id correspondant à un nom (ex: « Paul »).",
+  "parameters": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  }
+}

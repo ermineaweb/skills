@@ -1,0 +1,36 @@
+{
+  "name": "reserver_creneau",
+  "description": "Réserve un créneau choisi par l'utilisateur. slot_id doit provenir d'un résultat de rechercher_disponibilites. La réservation n'existe que si le résultat contient success: true.",
+  "parameters": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["slot_id", "type_rendez_vous"],
+    "properties": {
+      "slot_id": {
+        "type": "string",
+        "minLength": 1,
+        "description": "Identifiant exact du créneau, recopié depuis rechercher_disponibilites."
+      },
+      "client_id": {
+        "type": ["string", "null"],
+        "description": "Laisser à null : le client est déterminé par la session."
+      },
+      "client_name": {
+        "type": ["string", "null"],
+        "minLength": 1,
+        "maxLength": 200,
+        "description": "Nom du client. Inutile si l'utilisateur est identifié par la session."
+      },
+      "client_email": {
+        "type": ["string", "null"],
+        "format": "email",
+        "description": "E-mail du client, facultatif."
+      },
+      "type_rendez_vous": {
+        "type": "string",
+        "minLength": 1,
+        "description": "Type de rendez-vous (ex: consultation)."
+      }
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "interpreter_date",
+  "description": "Convertit une expression temporelle en français (« jeudi après-midi », « demain matin », « la semaine prochaine », « le 3 octobre à 16h ») en intervalle ISO 8601 dans le fuseau de l'utilisateur. À utiliser avant rechercher_disponibilites.",
+  "parameters": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["expression"],
+    "properties": {
+      "expression": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 200,
+        "description": "Expression temporelle, complétée si besoin par le contexte (ex: « vendredi matin »)."
+      }
+    }
+  }
+}

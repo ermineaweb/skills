@@ -1,0 +1,20 @@
+# Sert l'interface statique et relaie l'API vers le service Go.
+:80 {
+	encode zstd gzip
+
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy no-referrer
+		Content-Security-Policy "default-src 'self'; style-src 'self'; script-src 'self'; connect-src 'self'"
+		-Server
+	}
+
+	handle /api/* {
+		reverse_proxy api:8080
+	}
+
+	handle {
+		root * /srv
+		file_server
+	}
+}

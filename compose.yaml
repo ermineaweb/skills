@@ -1,0 +1,88 @@
+# Stack de prise de rendez-vous : ./run.sh (ou docker compose up --build -d)
+#
+#   navigateur ─► ui (Caddy) ─► /api/* ─► api (Go) ─► modèle
+#
+# Modèle : API en ligne compatible OpenAI (Gemini, Groq, OpenRouter…) si
+# MODEL_BASE_URL est défini, sinon Ollama local (profil « ollama », activé
+# automatiquement par run.sh ; à la main : docker compose --profile ollama up).
+#
+# Configuration facultative : .env (voir .env.example).
+
+name: rendez-vous
+
+services:
+  # Interface statique (ui/public/) servie par Caddy, qui relaie /api/* vers "api".
+  ui:
+    image: caddy:2.11.4-alpine
+    ports:
+      - "${WEB_PORT:-8080}:80"
+    volumes:
+      - ./ui/public:/srv:ro
+      - ./ui/Caddyfile:/etc/caddy/Caddyfile:ro
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  # API JSON (Go) : runtime + skill prise-de-rendez-vous + calendrier mock.
+  # Non exposée sur l'hôte : accessible uniquement via Caddy.
+  api:
+    build: .
+    image: rendez-vous-api:latest
+    command:
+      - "-addr=:8080"
+      - "-calendar-tz=${CALENDAR_TZ:-Europe/Paris}"
+      - "-warmup=${MODEL_WARMUP:-true}"
+    expose:
+      - "8080"
+    environment:
+      OPENAI_BASE_URL: ${MODEL_BASE_URL:-http://ollama:11434/v1}
+      OPENAI_API_KEY: ${MODEL_API_KEY:-}
+      OPENAI_MODEL: ${MODEL:-qwen3:4b-instruct}
+      # Options propres au modèle, ajoutées à chaque requête (ici : température
+      # recommandée par Qwen pour ses modèles Instruct).
+      OPENAI_EXTRA_BODY: ${MODEL_EXTRA_BODY:-{"temperature":0.7}}
+      # Sur CPU, le premier appel (prompt complet) peut prendre plusieurs minutes.
+      OPENAI_TIMEOUT: ${MODEL_TIMEOUT:-10m}
+    depends_on:
+      # Ignoré quand le profil « ollama » n'est pas actif (modèle en ligne).
+      ollama-pull:
+        condition: service_completed_successfully
+        required: false
+    restart: unless-stopped
+
+  # Serveur de modèles local, API compatible OpenAI. Non exposé sur l'hôte.
+  ollama:
+    image: ollama/ollama:0.35.0
+    profiles: [ollama]
+    volumes:
+      - ollama:/root/.ollama
+    environment:
+      # Contexte suffisant pour le prompt système, les tools et l'historique
+      # (au-delà, Ollama tronque silencieusement).
+      OLLAMA_CONTEXT_LENGTH: ${MODEL_CONTEXT:-8192}
+      # Cache KV quantifié : divise par deux la mémoire du contexte.
+      OLLAMA_FLASH_ATTENTION: "1"
+      OLLAMA_KV_CACHE_TYPE: q8_0
+      # Garde le modèle chargé entre deux messages.
+      OLLAMA_KEEP_ALIVE: 30m
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+    restart: unless-stopped
+
+  # Télécharge le modèle au premier lancement (instantané ensuite), puis s'arrête.
+  ollama-pull:
+    image: ollama/ollama:0.35.0
+    profiles: [ollama]
+    environment:
+      OLLAMA_HOST: ollama:11434
+    command: ["pull", "${MODEL:-qwen3:4b-instruct}"]
+    depends_on:
+      ollama:
+        condition: service_healthy
+    restart: "no"
+
+volumes:
+  ollama:

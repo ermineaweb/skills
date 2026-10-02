@@ -1,0 +1,9 @@
+{
+  "name": "lister_rendez_vous",
+  "description": "Liste les rendez-vous à venir du client identifié par la session. À utiliser pour retrouver le rendez-vous à déplacer ou annuler.",
+  "parameters": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  }
+}

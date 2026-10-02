@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Prise de rendez-vous</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="top">
+    <h1>Prise de rendez-vous</h1>
+    <span id="tz" class="muted"></span>
+  </header>
+
+  <section id="start" class="card start">
+    <h2>Bienvenue</h2>
+    <p class="muted">Démonstration sur un agenda fictif : Paul Martin et Marie Dubois, jours ouvrés des deux prochaines semaines.</p>
+    <form id="start-form">
+      <label for="nom">Votre nom <span class="muted">(facultatif)</span></label>
+      <input id="nom" name="nom" autocomplete="name" maxlength="100" placeholder="Camille Durand">
+      <button type="submit">Commencer</button>
+    </form>
+    <p id="start-error" class="error" hidden></p>
+  </section>
+
+  <main id="app" class="layout" hidden>
+    <section class="card chat" aria-label="Conversation">
+      <ol id="messages" class="messages" aria-live="polite"></ol>
+
+      <div id="suggestions" class="suggestions">
+        <button type="button">Je voudrais un rendez-vous jeudi après-midi.</button>
+        <button type="button">Je voudrais voir Paul la semaine prochaine.</button>
+        <button type="button">Est-ce que vous avez quelque chose demain matin ?</button>
+      </div>
+
+      <form id="chat-form" class="composer">
+        <input id="input" autocomplete="off" maxlength="2000" placeholder="Écrivez votre message…" aria-label="Message">
+        <button id="send" type="submit">Envoyer</button>
+      </form>
+    </section>
+
+    <aside class="card agenda" aria-label="Mes rendez-vous">
+      <h2>Mes rendez-vous</h2>
+      <p class="muted small">Lus directement dans le calendrier, pas dans la réponse de l'assistant.</p>
+      <ul id="agenda" class="agenda-list"></ul>
+      <p id="agenda-empty" class="muted">Aucun rendez-vous à venir.</p>
+      <label class="toggle small"><input id="show-tools" type="checkbox"> Afficher les appels d'outils</label>
+    </aside>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

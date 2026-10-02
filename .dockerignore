@@ -1,0 +1,7 @@
+.cache
+.git
+.env
+docs
+ui
+*.md
+!skills/**/*.md

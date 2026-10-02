@@ -1,0 +1,16 @@
+{
+  "name": "annuler_rendez_vous",
+  "description": "Annule un rendez-vous existant. L'annulation n'est effective que si le résultat contient success: true.",
+  "parameters": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["appointment_id"],
+    "properties": {
+      "appointment_id": {
+        "type": "string",
+        "minLength": 1,
+        "description": "Identifiant du rendez-vous, issu de reserver_creneau ou lister_rendez_vous."
+      }
+    }
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "name": "rechercher_disponibilites",
+  "description": "Recherche les créneaux réellement libres dans le calendrier sur une période. C'est la seule source de créneaux : ne propose jamais un horaire absent du résultat. Renvoie NO_AVAILABILITY si rien n'est libre.",
+  "parameters": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["date_debut", "date_fin"],
+    "properties": {
+      "professionnel_id": {
+        "type": ["string", "null"],
+        "minLength": 1,
+        "description": "Identifiant du professionnel, tel que renvoyé par lister_professionnels. null pour tous les professionnels."
+      },
+      "type_rendez_vous": {
+        "type": ["string", "null"],
+        "minLength": 1,
+        "description": "Type de rendez-vous (ex: consultation, bilan). null si inconnu."
+      },
+      "date_debut": {
+        "type": "string",
+        "format": "date-time",
+        "description": "Début de la période, ISO 8601 avec fuseau (ex: 2026-10-01T12:00:00+02:00)."
+      },
+      "date_fin": {
+        "type": "string",
+        "format": "date-time",
+        "description": "Fin de la période, ISO 8601 avec fuseau (ex: 2026-10-01T18:00:00+02:00)."
+      },
+      "duree_minutes": {
+        "type": ["integer", "null"],
+        "minimum": 5,
+        "maximum": 480,
+        "description": "Durée souhaitée. Par défaut : durée du type de rendez-vous."
+      }
+    }
+  }
+}

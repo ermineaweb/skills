@@ -1,0 +1,21 @@
+{
+  "name": "modifier_rendez_vous",
+  "description": "Déplace un rendez-vous existant vers un nouveau créneau. Les deux identifiants doivent provenir de résultats d'outils de la conversation. Le déplacement n'est effectif que si le résultat contient success: true.",
+  "parameters": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["appointment_id", "new_slot_id"],
+    "properties": {
+      "appointment_id": {
+        "type": "string",
+        "minLength": 1,
+        "description": "Identifiant du rendez-vous, issu de reserver_creneau ou lister_rendez_vous."
+      },
+      "new_slot_id": {
+        "type": "string",
+        "minLength": 1,
+        "description": "Identifiant du nouveau créneau, issu de rechercher_disponibilites."
+      }
+    }
+  }
+}
