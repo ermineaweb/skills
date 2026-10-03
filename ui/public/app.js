@@ -3,6 +3,9 @@
 // Le fuseau horaire vient du navigateur : il n'est jamais supposé côté serveur.
 const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 let sessionId = null;
+let skills = []; // skills chargés par l'API (GET /api/skills)
+let calendar = null; // agenda de démonstration (calendar.js)
+let prospects = null; // panneau des prospects (prospects.js)
 
 const $ = (id) => document.getElementById(id);
 const messages = $("messages");
@@ -11,12 +14,39 @@ const send = $("send");
 
 $("tz").textContent = timezone ? `Fuseau : ${timezone}` : "Fuseau horaire inconnu";
 
-// Libellés affichés à partir des effets confirmés par le calendrier
+const RDV = "prise-de-rendez-vous";
+const PROSPECTS = "prospect-research";
+
+// Présentation de chaque skill : l'interface n'affiche que ceux que l'API a
+// chargés.
+const SKILL_UI = {
+  [RDV]: {
+    intro: "prendre, déplacer ou annuler un rendez-vous",
+    detail: "Rendez-vous : agenda fictif de Paul Martin et Marie Dubois, jours ouvrés des deux prochaines semaines.",
+    suggestions: [
+      "Je voudrais un rendez-vous jeudi après-midi.",
+      "Je voudrais voir Paul la semaine prochaine.",
+      "Est-ce que vous avez quelque chose demain matin ?",
+    ],
+  },
+  [PROSPECTS]: {
+    intro: "rechercher des entreprises correspondant à un profil de client",
+    detail: "Prospects : moteur de recherche simulé, entreprises fictives (aucun accès à Internet).",
+    suggestions: [
+      "Trouve-moi 5 entreprises françaises de 20 à 200 salariés dans le SaaS B2B.",
+      "Trouve des éditeurs SaaS B2B français qui recrutent des commerciaux.",
+      "Trouve des éditeurs SaaS B2B français basés à Lyon ou à Lille.",
+    ],
+  },
+};
+
+// Libellés affichés à partir des effets confirmés par les tools
 // (et non à partir du texte généré par le modèle).
 const EFFECT_LABELS = {
   reserver_creneau: "Réservation enregistrée dans le calendrier",
   modifier_rendez_vous: "Déplacement enregistré dans le calendrier",
   annuler_rendez_vous: "Annulation enregistrée dans le calendrier",
+  enregistrer_prospects: "Résultat de recherche enregistré",
 };
 
 async function api(method, path, body) {
@@ -36,6 +66,9 @@ async function api(method, path, body) {
   return data;
 }
 
+const has = (name) => skills.includes(name);
+const ui = () => skills.map((s) => SKILL_UI[s]).filter(Boolean);
+
 function addItem(className, text) {
   const li = document.createElement("li");
   li.className = className;
@@ -47,8 +80,11 @@ function addItem(className, text) {
 
 function addEffects(effects) {
   for (const e of effects || []) {
-    const libelle = e.result && e.result.appointment ? ` : ${e.result.appointment.libelle}` : "";
-    addItem("effect", `✓ ${EFFECT_LABELS[e.tool] || e.tool}${libelle}`);
+    const appt = e.result && e.result.appointment;
+    addItem("effect", `✓ ${EFFECT_LABELS[e.tool] || e.tool}${appt ? ` : ${appt.libelle}` : ""}`);
+    // L'agenda se place sur la semaine du rendez-vous concerné.
+    // start est exprimé dans le fuseau de la session : sa date est locale.
+    if (calendar && appt && appt.start) calendar.goTo(appt.start.slice(0, 10), appt.id);
   }
 }
 
@@ -69,6 +105,8 @@ function addTools(steps) {
 }
 
 async function refreshAgenda() {
+  if (!has(RDV)) return;
+  if (calendar) calendar.refresh();
   const list = $("agenda");
   try {
     const data = await api("GET", `/api/sessions/${sessionId}/rendez-vous`);
@@ -88,6 +126,11 @@ async function refreshAgenda() {
     $("agenda-empty").hidden = false;
     $("agenda-empty").textContent = "Agenda momentanément indisponible.";
   }
+}
+
+function refreshPanels() {
+  refreshAgenda();
+  if (prospects) prospects.refresh();
 }
 
 function setBusy(busy) {
@@ -123,9 +166,30 @@ async function sendMessage(text) {
   } finally {
     setBusy(false);
     input.focus();
-    refreshAgenda();
+    refreshPanels();
   }
 }
+
+function joinFr(parts) {
+  return parts.length <= 1 ? parts.join("") : `${parts.slice(0, -1).join(", ")} ou ${parts[parts.length - 1]}`;
+}
+
+// Écran d'accueil : description des skills chargés.
+async function loadSkills() {
+  try {
+    skills = (await api("GET", "/api/skills")).skills;
+  } catch {
+    skills = [RDV]; // API antérieure à /api/skills
+  }
+  const list = $("start-skills");
+  list.replaceChildren();
+  for (const s of ui()) {
+    const li = document.createElement("li");
+    li.textContent = s.detail;
+    list.append(li);
+  }
+}
+const skillsLoaded = loadSkills();
 
 $("start-form").addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -137,12 +201,37 @@ $("start-form").addEventListener("submit", async (event) => {
     return;
   }
   try {
+    await skillsLoaded;
     const data = await api("POST", "/api/sessions", { timezone, nom: $("nom").value });
     sessionId = data.session_id;
     $("start").hidden = true;
     $("app").hidden = false;
-    addItem("msg bot", "Bonjour ! Je peux prendre, déplacer ou annuler un rendez-vous. Que puis-je faire pour vous ?");
-    refreshAgenda();
+
+    for (const text of ui().flatMap((s) => s.suggestions)) {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.textContent = text;
+      $("suggestions").append(b);
+    }
+    if (has(RDV)) {
+      $("agenda-card").hidden = false;
+      $("show-calendar").parentElement.hidden = false;
+      calendar = createDemoCalendar(
+        (date) => api("GET", `/api/sessions/${sessionId}/calendrier${date ? `?date=${date}` : ""}`),
+        () => { calendar = null; $("calendar").hidden = true; $("show-calendar").parentElement.hidden = true; updateLayout(); },
+      );
+    }
+    if (has(PROSPECTS)) {
+      $("prospects").hidden = false;
+      prospects = createProspectsPanel(() => api("GET", `/api/sessions/${sessionId}/prospects`));
+    }
+    showCalendar(storedCalendarPref());
+
+    const intros = ui().map((s) => s.intro);
+    addItem("msg bot", intros.length
+      ? `Bonjour ! Je peux ${joinFr(intros)}. Que puis-je faire pour vous ?`
+      : "Bonjour ! Que puis-je faire pour vous ?");
+    refreshPanels();
     input.focus();
   } catch (err) {
     errorBox.textContent = err.message;
@@ -157,6 +246,29 @@ $("chat-form").addEventListener("submit", (event) => {
 
 $("suggestions").addEventListener("click", (event) => {
   if (event.target instanceof HTMLButtonElement) sendMessage(event.target.textContent);
+});
+
+// Colonne de droite élargie quand elle contient l'agenda ou les prospects.
+function updateLayout() {
+  const wide = !$("calendar").hidden || !$("prospects").hidden;
+  $("app").classList.toggle("wide", wide);
+}
+
+// Affichage de l'agenda : préférence locale, sans incidence si le stockage
+// est indisponible (navigation privée…).
+function storedCalendarPref() {
+  try { return localStorage.getItem("show-calendar") !== "0"; } catch { return true; }
+}
+
+function showCalendar(visible) {
+  $("show-calendar").checked = visible;
+  $("calendar").hidden = !visible || !calendar;
+  updateLayout();
+}
+
+$("show-calendar").addEventListener("change", (event) => {
+  showCalendar(event.target.checked);
+  try { localStorage.setItem("show-calendar", event.target.checked ? "1" : "0"); } catch { /* ignoré */ }
 });
 
 $("show-tools").addEventListener("change", (event) => {

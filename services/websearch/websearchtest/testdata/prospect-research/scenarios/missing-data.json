@@ -1,0 +1,49 @@
+{
+  "name": "missing-data",
+  "description": "Effectifs introuvables pour Ombrelle et Calmeo (page sans effectif, pas de fiche de registre trouvable).",
+  "icp": "Trouve-moi 10 entreprises françaises de 20 à 200 salariés dans le SaaS B2B. Indique l'effectif de chaque entreprise.",
+  "search_files": [
+    "companies.json",
+    "saas-france.json",
+    "signals.json"
+  ],
+  "search": [
+    {
+      "keywords": [
+        "calmeo"
+      ],
+      "priority": 5,
+      "results": [
+        {
+          "title": "Calmeo — Planification des équipes soignantes",
+          "url": "https://calmeo.test/",
+          "snippet": "Plateforme SaaS de planification des équipes pour les cliniques. 60 collaborateurs à Grenoble."
+        }
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "url": "https://calmeo.test/",
+      "file": "calmeo-home-minimal.html"
+    },
+    {
+      "url": "https://registre-entreprises.test/societe/900500600",
+      "status": 404
+    }
+  ],
+  "expect": {
+    "prospects": [
+      "acme-saas.test"
+    ],
+    "excluded": [
+      "tinyform.test",
+      "hexacorp.test"
+    ],
+    "checks": [
+      "ombrelle.test et calmeo.test : employees min/max null, status unknown ; jamais 0 ni une estimation",
+      "ombrelle.test et calmeo.test : s'ils sont retenus, icp_match.status probable, critère d'effectif dans unverified_criteria",
+      "aucune valeur sans source_ids"
+    ]
+  }
+}

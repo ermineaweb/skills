@@ -5,7 +5,11 @@
 //
 //	POST /api/sessions                    {"timezone": "Europe/Paris", "nom": "…"} → {"session_id": "…"}
 //	POST /api/sessions/{id}/messages      {"message": "…"} → {"text", "steps", "effects"}
-//	GET  /api/sessions/{id}/rendez-vous   → rendez-vous à venir lus dans le calendrier
+//	GET  /api/skills                      → {"skills": […]} skills enregistrés
+//
+// Le package ne connaît aucun skill ni service métier : les routes propres à
+// un domaine (ex. l'agenda, voir api/calendarapi) s'ajoutent sous
+// /api/sessions/{id}/ avec WithSessionRoute.
 package api
 
 import (
@@ -21,8 +25,6 @@ import (
 	"time"
 
 	"skills/agent"
-	"skills/datetime"
-	"skills/services/calendar"
 	"skills/types"
 )
 
@@ -43,13 +45,21 @@ type entry struct {
 // Server relie les requêtes HTTP au runtime. Les sessions sont en mémoire.
 type Server struct {
 	rt       *agent.Runtime
-	cal      calendar.Provider
 	now      func() time.Time
 	mu       sync.Mutex
 	sessions map[string]*entry
 	// activate : skills activés dès la création d'une session (décision de
 	// l'application hôte), ce qui évite un appel au modèle par conversation.
 	activate []string
+	routes   []sessionRoute
+}
+
+// SessionHandler traite une requête portant sur une session existante.
+type SessionHandler func(w http.ResponseWriter, r *http.Request, sess *agent.Session)
+
+type sessionRoute struct {
+	method, path string
+	handler      SessionHandler
 }
 
 // Option configure le Server.
@@ -60,13 +70,20 @@ func WithActivatedSkills(names ...string) Option {
 	return func(s *Server) { s.activate = append(s.activate, names...) }
 }
 
-// New crée le serveur. cal est le même Provider que celui du skill : il sert
-// à afficher l'état réel de l'agenda, indépendamment du texte du modèle.
-func New(rt *agent.Runtime, cal calendar.Provider, now func() time.Time, opts ...Option) *Server {
+// WithSessionRoute ajoute la route « method /api/sessions/{id}/path ». Le
+// serveur résout la session (404 si inconnue ou expirée) avant d'appeler h.
+func WithSessionRoute(method, path string, h SessionHandler) Option {
+	return func(s *Server) {
+		s.routes = append(s.routes, sessionRoute{method: method, path: path, handler: h})
+	}
+}
+
+// New crée le serveur.
+func New(rt *agent.Runtime, now func() time.Time, opts ...Option) *Server {
 	if now == nil {
 		now = time.Now
 	}
-	s := &Server{rt: rt, cal: cal, now: now, sessions: map[string]*entry{}}
+	s := &Server{rt: rt, now: now, sessions: map[string]*entry{}}
 	for _, o := range opts {
 		o(s)
 	}
@@ -76,10 +93,24 @@ func New(rt *agent.Runtime, cal calendar.Provider, now func() time.Time, opts ..
 // Handler renvoie le routeur HTTP.
 func (s *Server) Handler() http.Handler {
 	mux := http.NewServeMux()
+	mux.HandleFunc("GET /api/skills", s.listSkills)
 	mux.HandleFunc("POST /api/sessions", s.createSession)
 	mux.HandleFunc("POST /api/sessions/{id}/messages", s.postMessage)
-	mux.HandleFunc("GET /api/sessions/{id}/rendez-vous", s.listAppointments)
+	for _, rt := range s.routes {
+		h := rt.handler
+		mux.HandleFunc(rt.method+" /api/sessions/{id}/"+rt.path, func(w http.ResponseWriter, r *http.Request) {
+			if sess, ok := s.session(w, r); ok {
+				h(w, r, sess)
+			}
+		})
+	}
 	return mux
+}
+
+// listSkills permet à l'interface de n'afficher que ce qui concerne les
+// skills chargés (suggestions, panneaux).
+func (s *Server) listSkills(w http.ResponseWriter, _ *http.Request) {
+	WriteJSON(w, http.StatusOK, map[string][]string{"skills": nonNil(s.rt.Skills())})
 }
 
 func (s *Server) createSession(w http.ResponseWriter, r *http.Request) {
@@ -92,12 +123,12 @@ func (s *Server) createSession(w http.ResponseWriter, r *http.Request) {
 	}
 	id, err := randomID()
 	if err != nil {
-		writeError(w, http.StatusInternalServerError, "erreur interne")
+		WriteError(w, http.StatusInternalServerError, "erreur interne")
 		return
 	}
 	name := strings.TrimSpace(body.Nom)
 	if len([]rune(name)) > 100 {
-		writeError(w, http.StatusBadRequest, "nom trop long")
+		WriteError(w, http.StatusBadRequest, "nom trop long")
 		return
 	}
 	// Démo : chaque session web correspond à un client distinct. En
@@ -105,7 +136,7 @@ func (s *Server) createSession(w http.ResponseWriter, r *http.Request) {
 	user := types.UserContext{ClientID: "web-" + id[:12], Name: name}
 	sess, err := agent.NewSession(id, body.Timezone, user)
 	if err != nil {
-		writeError(w, http.StatusBadRequest, "fuseau horaire manquant ou invalide")
+		WriteError(w, http.StatusBadRequest, "fuseau horaire manquant ou invalide")
 		return
 	}
 	for _, name := range s.activate {
@@ -122,7 +153,7 @@ func (s *Server) createSession(w http.ResponseWriter, r *http.Request) {
 	s.sessions[id] = &entry{session: sess, lastUsed: now}
 	s.mu.Unlock()
 
-	writeJSON(w, http.StatusCreated, map[string]string{"session_id": id, "timezone": sess.Location.String()})
+	WriteJSON(w, http.StatusCreated, map[string]string{"session_id": id, "timezone": sess.Location.String()})
 }
 
 func (s *Server) postMessage(w http.ResponseWriter, r *http.Request) {
@@ -138,7 +169,7 @@ func (s *Server) postMessage(w http.ResponseWriter, r *http.Request) {
 	}
 	msg := strings.TrimSpace(body.Message)
 	if msg == "" || len([]rune(msg)) > maxMessageLen {
-		writeError(w, http.StatusBadRequest, "message vide ou trop long")
+		WriteError(w, http.StatusBadRequest, "message vide ou trop long")
 		return
 	}
 
@@ -148,51 +179,18 @@ func (s *Server) postMessage(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		slog.ErrorContext(ctx, "tour de conversation", "session", sess.ID, "error", err)
 		// Les effets déjà confirmés sont renvoyés même en cas d'erreur.
-		writeJSON(w, http.StatusBadGateway, map[string]any{
+		WriteJSON(w, http.StatusBadGateway, map[string]any{
 			"error":   "L'assistant est momentanément indisponible. Réessayez dans un instant.",
 			"steps":   nonNil(reply.Steps),
 			"effects": nonNil(reply.Effects),
 		})
 		return
 	}
-	writeJSON(w, http.StatusOK, map[string]any{
+	WriteJSON(w, http.StatusOK, map[string]any{
 		"text":    reply.Text,
 		"steps":   nonNil(reply.Steps),
 		"effects": nonNil(reply.Effects),
 	})
-}
-
-type appointmentView struct {
-	ID               string `json:"id"`
-	Start            string `json:"start"`
-	Libelle          string `json:"libelle"`
-	ProfessionnelNom string `json:"professionnel_nom"`
-	TypeRendezVous   string `json:"type_rendez_vous"`
-}
-
-func (s *Server) listAppointments(w http.ResponseWriter, r *http.Request) {
-	sess, ok := s.session(w, r)
-	if !ok {
-		return
-	}
-	res, err := s.cal.ListAppointments(r.Context(), calendar.ListAppointmentsRequest{
-		ClientID: sess.User.ClientID, From: s.now(),
-	})
-	if err != nil {
-		writeError(w, http.StatusBadGateway, "agenda indisponible")
-		return
-	}
-	out := make([]appointmentView, 0, len(res.Appointments))
-	for _, a := range res.Appointments {
-		out = append(out, appointmentView{
-			ID:               a.ID,
-			Start:            a.Start.In(sess.Location).Format(time.RFC3339),
-			Libelle:          datetime.FormatFR(a.Start, sess.Location),
-			ProfessionnelNom: a.ProfessionnelNom,
-			TypeRendezVous:   a.TypeRendezVous,
-		})
-	}
-	writeJSON(w, http.StatusOK, map[string]any{"rendez_vous": out})
 }
 
 func (s *Server) session(w http.ResponseWriter, r *http.Request) (*agent.Session, bool) {
@@ -200,7 +198,7 @@ func (s *Server) session(w http.ResponseWriter, r *http.Request) (*agent.Session
 	defer s.mu.Unlock()
 	e, ok := s.sessions[r.PathValue("id")]
 	if !ok || s.now().Sub(e.lastUsed) > sessionTTL {
-		writeError(w, http.StatusNotFound, "session inconnue ou expirée")
+		WriteError(w, http.StatusNotFound, "session inconnue ou expirée")
 		return nil, false
 	}
 	e.lastUsed = s.now()
@@ -210,20 +208,22 @@ func (s *Server) session(w http.ResponseWriter, r *http.Request) (*agent.Session
 func decode(w http.ResponseWriter, r *http.Request, dst any) bool {
 	r.Body = http.MaxBytesReader(w, r.Body, maxBodyBytes)
 	if err := json.NewDecoder(r.Body).Decode(dst); err != nil {
-		writeError(w, http.StatusBadRequest, "JSON invalide")
+		WriteError(w, http.StatusBadRequest, "JSON invalide")
 		return false
 	}
 	return true
 }
 
-func writeJSON(w http.ResponseWriter, status int, v any) {
+// WriteJSON écrit v en JSON avec le code status.
+func WriteJSON(w http.ResponseWriter, status int, v any) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(status)
 	_ = json.NewEncoder(w).Encode(v)
 }
 
-func writeError(w http.ResponseWriter, status int, msg string) {
-	writeJSON(w, status, map[string]string{"error": msg})
+// WriteError écrit {"error": msg} avec le code status.
+func WriteError(w http.ResponseWriter, status int, msg string) {
+	WriteJSON(w, status, map[string]string{"error": msg})
 }
 
 func randomID() (string, error) {

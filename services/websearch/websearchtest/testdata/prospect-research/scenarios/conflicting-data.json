@@ -1,0 +1,65 @@
+{
+  "name": "conflicting-data",
+  "description": "Kalista : 120 personnes selon son site, 250 selon un annuaire. Logitrame : données datées de 2018-2019. Acme sert de témoin (sources concordantes).",
+  "icp": "Trouve-moi 10 entreprises françaises de 20 à 200 salariés dans le SaaS B2B.",
+  "search_files": [
+    "companies.json",
+    "saas-france.json",
+    "signals.json"
+  ],
+  "search": [
+    {
+      "keywords": [
+        "saas",
+        "france|francais|francaise|francaises|french"
+      ],
+      "priority": 5,
+      "results": [
+        {
+          "title": "Kalista — Planification des tournées d'intervention",
+          "url": "https://kalista.test/",
+          "snippet": "Logiciel SaaS de planification des tournées pour les entreprises de services. Toulouse."
+        },
+        {
+          "title": "Kalista — Annuaire Pro",
+          "url": "https://annuaire-pro.test/entreprises/kalista",
+          "snippet": "Kalista, éditeur de logiciels à Toulouse. Effectif : 250 salariés."
+        },
+        {
+          "title": "Logitrame — Gestion documentaire pour les entreprises",
+          "url": "https://logitrame.test/",
+          "snippet": "Logiciel SaaS de gestion électronique de documents pour les PME. Rennes."
+        },
+        {
+          "title": "LOGITRAME — Registre des entreprises",
+          "url": "https://registre-entreprises.test/societe/900300400",
+          "snippet": "LOGITRAME, Rennes. 20 à 49 salariés."
+        },
+        {
+          "title": "Acme SaaS — Automatisez vos workflows finance et opérations",
+          "url": "https://acme-saas.test/",
+          "snippet": "Acme SaaS édite une plateforme SaaS d'automatisation des workflows pour les PME et ETI. 85 collaborateurs à Lyon."
+        },
+        {
+          "title": "ACME Software — Annuaire Pro",
+          "url": "https://annuaire-pro.test/entreprises/acme-software",
+          "snippet": "ACME Software, éditeur de logiciels à Lyon. Effectif : 80 à 100 salariés."
+        }
+      ]
+    }
+  ],
+  "pages": [],
+  "expect": {
+    "prospects": [
+      "acme-saas.test",
+      "kalista.test"
+    ],
+    "excluded": [],
+    "checks": [
+      "kalista.test : la divergence 120 / 250 est conservée (note ou alternatives), sans valeur choisie arbitrairement ; Kalista n'est pas exclue sur la base de l'annuaire",
+      "logitrame.test : effectif accompagné de as_of (2018 ou 2019) et d'une note sur l'ancienneté",
+      "logitrame.test : la levée de fonds de 2019 n'est pas présentée comme un signal récent",
+      "acme-saas.test : effectif vérifié, sans conflit (85, 80-100 et 50-99 concordent)"
+    ]
+  }
+}

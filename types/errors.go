@@ -17,6 +17,8 @@ const (
 	ErrInvalidRequest        ErrorCode = "INVALID_REQUEST"
 	ErrMissingInformation    ErrorCode = "MISSING_INFORMATION"
 	ErrCalendarUnavailable   ErrorCode = "CALENDAR_UNAVAILABLE"
+	ErrSearchUnavailable     ErrorCode = "SEARCH_UNAVAILABLE"
+	ErrPageUnavailable       ErrorCode = "PAGE_UNAVAILABLE"
 	ErrInternal              ErrorCode = "INTERNAL_ERROR"
 )
 
@@ -69,12 +71,16 @@ func DefaultHint(code ErrorCode) string {
 		return "Information manquante. Demande uniquement les champs listés dans 'missing' à l'utilisateur."
 	case ErrCalendarUnavailable:
 		return "Le service d'agenda est momentanément indisponible. Informe l'utilisateur et propose de réessayer plus tard."
+	case ErrSearchUnavailable:
+		return "Le moteur de recherche n'a pas répondu. Réessaie au plus une fois, éventuellement avec une autre requête ; sinon signale-le dans les avertissements. N'invente aucun résultat."
+	case ErrPageUnavailable:
+		return "La page n'a pas pu être lue. Ne la cite pas comme source consultée et n'en déduis rien ; cherche l'information ailleurs."
 	default:
 		return "Erreur interne. Informe l'utilisateur que l'opération n'a pas pu être réalisée."
 	}
 }
 
 func retryable(code ErrorCode) bool {
-	return code == ErrCalendarUnavailable || code == ErrBookingFailed ||
+	return code == ErrCalendarUnavailable || code == ErrSearchUnavailable || code == ErrBookingFailed ||
 		code == ErrUpdateFailed || code == ErrCancelFailed
 }

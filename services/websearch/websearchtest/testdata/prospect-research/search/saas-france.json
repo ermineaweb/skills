@@ -1,0 +1,320 @@
+{
+  "entries": [
+    {
+      "keywords": [
+        "saas",
+        "france|francais|francaise|francaises|french"
+      ],
+      "results": [
+        {
+          "title": "Acme SaaS — Automatisez vos workflows finance et opérations",
+          "url": "https://acme-saas.test/",
+          "snippet": "Acme SaaS édite une plateforme SaaS d'automatisation des workflows pour les PME et ETI. 85 collaborateurs à Lyon."
+        },
+        {
+          "title": "Nuvio — Notes de frais et cartes de paiement pour les entreprises",
+          "url": "https://nuvio.test/",
+          "snippet": "Logiciel SaaS de gestion des dépenses professionnelles. 140 collaborateurs entre Paris et Madrid."
+        },
+        {
+          "title": "Kalista — Planification des tournées d'intervention",
+          "url": "https://kalista.test/",
+          "snippet": "Logiciel SaaS de planification des tournées pour les entreprises de services. Toulouse."
+        },
+        {
+          "title": "Calmeo — Planification des équipes soignantes",
+          "url": "https://calmeo.test/",
+          "snippet": "Plateforme SaaS de planification des équipes pour les cliniques. 60 collaborateurs à Grenoble."
+        },
+        {
+          "title": "Cloudnova — Plateforme SaaS B2B",
+          "url": "https://cloudnova.test/",
+          "snippet": "Cloudnova, plateforme SaaS B2B française, 50 employés, accélère la croissance des PME."
+        },
+        {
+          "title": "Sendara — Emails transactionnels pour les entreprises",
+          "url": "https://sendara.test/",
+          "snippet": "Plateforme SaaS d'emails transactionnels. 35 personnes à Lille."
+        },
+        {
+          "title": "Ombrelle — Maîtrisez le risque fournisseurs",
+          "url": "https://ombrelle.test/",
+          "snippet": "Solution SaaS B2B d'évaluation du risque fournisseurs, basée à Nantes."
+        },
+        {
+          "title": "Tinyform — Formulaires en ligne pour les entreprises",
+          "url": "https://tinyform.test/",
+          "snippet": "Outil SaaS de création de formulaires pour les équipes RH et commerciales. Bordeaux."
+        },
+        {
+          "title": "Hexacorp Software — L'ERP SaaS des grandes entreprises",
+          "url": "https://hexacorp.test/",
+          "snippet": "ERP en mode SaaS pour les grandes entreprises. Siège à Paris La Défense."
+        },
+        {
+          "title": "Fitloop — Votre coach sportif dans votre poche",
+          "url": "https://fitloop.test/",
+          "snippet": "La start-up SaaS montpelliéraine Fitloop, 70 personnes, poursuit sa croissance."
+        },
+        {
+          "title": "Zenith Analytics — Analytics SaaS pour les PME",
+          "url": "https://zenith-analytics.test/",
+          "snippet": "Plateforme SaaS B2B d'analytics pour les PME, basée à Marseille. 70 collaborateurs."
+        },
+        {
+          "title": "Altiva — Gestion de flotte pour les entreprises",
+          "url": "https://altiva.test/",
+          "snippet": "Logiciel SaaS de gestion de flotte automobile. 45 salariés à Lille."
+        }
+      ]
+    },
+    {
+      "keywords": [
+        "saas",
+        "b2b",
+        "france|francais|francaise|francaises|french"
+      ],
+      "results": [
+        {
+          "title": "Nuvio — Notes de frais et cartes de paiement pour les entreprises",
+          "url": "https://nuvio.test/",
+          "snippet": "Logiciel SaaS de gestion des dépenses professionnelles. 140 collaborateurs entre Paris et Madrid."
+        },
+        {
+          "title": "Acme SaaS — Automatisez vos workflows finance et opérations",
+          "url": "https://acme-saas.test/",
+          "snippet": "Acme SaaS édite une plateforme SaaS d'automatisation des workflows pour les PME et ETI. 85 collaborateurs à Lyon."
+        },
+        {
+          "title": "Cloudnova — Plateforme SaaS B2B",
+          "url": "https://cloudnova.test/",
+          "snippet": "Cloudnova, plateforme SaaS B2B française, 50 employés, accélère la croissance des PME."
+        },
+        {
+          "title": "Ombrelle — Maîtrisez le risque fournisseurs",
+          "url": "https://ombrelle.test/",
+          "snippet": "Solution SaaS B2B d'évaluation du risque fournisseurs, basée à Nantes."
+        },
+        {
+          "title": "Kalista — Planification des tournées d'intervention",
+          "url": "https://kalista.test/",
+          "snippet": "Logiciel SaaS de planification des tournées pour les entreprises de services. Toulouse."
+        },
+        {
+          "title": "Datenwerk — Data pipelines for B2B teams",
+          "url": "https://datenwerk.test/",
+          "snippet": "B2B SaaS platform for data pipelines, trusted by many French mid-size companies."
+        },
+        {
+          "title": "Calmeo — Planification des équipes soignantes",
+          "url": "https://calmeo.test/",
+          "snippet": "Plateforme SaaS de planification des équipes pour les cliniques. 60 collaborateurs à Grenoble."
+        },
+        {
+          "title": "Brightpay France — Logiciel de paie SaaS",
+          "url": "https://brightpay-fr.test/",
+          "snippet": "Logiciel de paie en SaaS pour les entreprises françaises. Filiale du groupe Brightpay."
+        },
+        {
+          "title": "Sendara — Emails transactionnels pour les entreprises",
+          "url": "https://sendara.test/",
+          "snippet": "Plateforme SaaS d'emails transactionnels. 35 personnes à Lille."
+        },
+        {
+          "title": "Zenith Analytics — Analytics SaaS pour les PME",
+          "url": "https://zenith-analytics.test/",
+          "snippet": "Plateforme SaaS B2B d'analytics pour les PME, basée à Marseille. 70 collaborateurs."
+        },
+        {
+          "title": "Hexacorp Software — L'ERP SaaS des grandes entreprises",
+          "url": "https://hexacorp.test/",
+          "snippet": "ERP en mode SaaS pour les grandes entreprises. Siège à Paris La Défense."
+        },
+        {
+          "title": "Tinyform — Formulaires en ligne pour les entreprises",
+          "url": "https://tinyform.test/",
+          "snippet": "Outil SaaS de création de formulaires pour les équipes RH et commerciales. Bordeaux."
+        }
+      ]
+    },
+    {
+      "keywords": [
+        "saas",
+        "france|francais|francaise|francaises|french",
+        "employes|employees|salaries|collaborateurs|effectif"
+      ],
+      "results": [
+        {
+          "title": "Acme SaaS — Automatisez vos workflows finance et opérations",
+          "url": "https://acme-saas.test/",
+          "snippet": "Acme SaaS édite une plateforme SaaS d'automatisation des workflows pour les PME et ETI. 85 collaborateurs à Lyon."
+        },
+        {
+          "title": "Cloudnova — Plateforme SaaS B2B",
+          "url": "https://cloudnova.test/",
+          "snippet": "Cloudnova, plateforme SaaS B2B française, 50 employés, accélère la croissance des PME."
+        },
+        {
+          "title": "Kalista — Annuaire Pro",
+          "url": "https://annuaire-pro.test/entreprises/kalista",
+          "snippet": "Kalista, éditeur de logiciels à Toulouse. Effectif : 250 salariés."
+        },
+        {
+          "title": "Tinyform — Formulaires en ligne pour les entreprises",
+          "url": "https://tinyform.test/",
+          "snippet": "Outil SaaS de création de formulaires pour les équipes RH et commerciales. Bordeaux."
+        },
+        {
+          "title": "Hexacorp Software — L'ERP SaaS des grandes entreprises",
+          "url": "https://hexacorp.test/",
+          "snippet": "ERP en mode SaaS pour les grandes entreprises. Siège à Paris La Défense."
+        },
+        {
+          "title": "Fitloop — Votre coach sportif dans votre poche",
+          "url": "https://fitloop.test/",
+          "snippet": "La start-up SaaS montpelliéraine Fitloop, 70 personnes, poursuit sa croissance."
+        },
+        {
+          "title": "Calmeo — Planification des équipes soignantes",
+          "url": "https://calmeo.test/",
+          "snippet": "Plateforme SaaS de planification des équipes pour les cliniques. 60 collaborateurs à Grenoble."
+        },
+        {
+          "title": "ACME Software — Annuaire Pro",
+          "url": "https://annuaire-pro.test/entreprises/acme-software",
+          "snippet": "ACME Software, éditeur de logiciels à Lyon. Effectif : 80 à 100 salariés."
+        }
+      ]
+    },
+    {
+      "keywords": [
+        "editeur|editeurs|logiciel|logiciels|software",
+        "france|francais|francaise|francaises|french"
+      ],
+      "results": [
+        {
+          "title": "ACME Software — Annuaire Pro",
+          "url": "https://annuaire-pro.test/entreprises/acme-software",
+          "snippet": "ACME Software, éditeur de logiciels à Lyon. Effectif : 80 à 100 salariés."
+        },
+        {
+          "title": "Logitrame — Gestion documentaire pour les entreprises",
+          "url": "https://logitrame.test/",
+          "snippet": "Logiciel SaaS de gestion électronique de documents pour les PME. Rennes."
+        },
+        {
+          "title": "Acme SaaS — Automatisez vos workflows finance et opérations",
+          "url": "https://acme-saas.test/",
+          "snippet": "Acme SaaS édite une plateforme SaaS d'automatisation des workflows pour les PME et ETI. 85 collaborateurs à Lyon."
+        },
+        {
+          "title": "Kalista — Annuaire Pro",
+          "url": "https://annuaire-pro.test/entreprises/kalista",
+          "snippet": "Kalista, éditeur de logiciels à Toulouse. Effectif : 250 salariés."
+        },
+        {
+          "title": "Ombrelle — Annuaire Pro",
+          "url": "https://annuaire-pro.test/entreprises/ombrelle",
+          "snippet": "Ombrelle, édition de logiciels, Nantes. Effectif : non communiqué."
+        },
+        {
+          "title": "Brightpay France — Logiciel de paie SaaS",
+          "url": "https://brightpay-fr.test/",
+          "snippet": "Logiciel de paie en SaaS pour les entreprises françaises. Filiale du groupe Brightpay."
+        },
+        {
+          "title": "CALMEO — Registre des entreprises",
+          "url": "https://registre-entreprises.test/societe/900500600",
+          "snippet": "CALMEO, Grenoble. Édition de logiciels applicatifs. 50 à 99 salariés."
+        }
+      ]
+    },
+    {
+      "keywords": [
+        "saas",
+        "lyon"
+      ],
+      "results": [
+        {
+          "title": "Acme SaaS — Automatisez vos workflows finance et opérations",
+          "url": "https://acme-saas.test/",
+          "snippet": "Acme SaaS édite une plateforme SaaS d'automatisation des workflows pour les PME et ETI. 85 collaborateurs à Lyon."
+        },
+        {
+          "title": "ACME Software — Logiciel de workflow",
+          "url": "https://acmesoftware.test/",
+          "snippet": "ACME Software, l'éditeur lyonnais de logiciels de workflow."
+        },
+        {
+          "title": "ACME Software — Annuaire Pro",
+          "url": "https://annuaire-pro.test/entreprises/acme-software",
+          "snippet": "ACME Software, éditeur de logiciels à Lyon. Effectif : 80 à 100 salariés."
+        }
+      ]
+    },
+    {
+      "keywords": [
+        "saas",
+        "lille"
+      ],
+      "results": [
+        {
+          "title": "Sendara — Emails transactionnels pour les entreprises",
+          "url": "https://sendara.test/",
+          "snippet": "Plateforme SaaS d'emails transactionnels. 35 personnes à Lille."
+        },
+        {
+          "title": "Altiva — Gestion de flotte pour les entreprises",
+          "url": "https://altiva.test/",
+          "snippet": "Logiciel SaaS de gestion de flotte automobile. 45 salariés à Lille."
+        },
+        {
+          "title": "Altiva Conseil — Conseil en stratégie",
+          "url": "https://altiva-conseil.test/",
+          "snippet": "Cabinet de conseil en stratégie pour les PME, Lille."
+        }
+      ]
+    },
+    {
+      "keywords": [
+        "saas",
+        "europe|allemagne|germany|international"
+      ],
+      "results": [
+        {
+          "title": "Datenwerk — Data pipelines for B2B teams",
+          "url": "https://datenwerk.test/",
+          "snippet": "B2B SaaS platform for data pipelines, trusted by many French mid-size companies."
+        },
+        {
+          "title": "Brightpay Group — Payroll software",
+          "url": "https://brightpay.test/",
+          "snippet": "Payroll and HR software. 3,000 employees worldwide."
+        },
+        {
+          "title": "Hexacorp Software — L'ERP SaaS des grandes entreprises",
+          "url": "https://hexacorp.test/",
+          "snippet": "ERP en mode SaaS pour les grandes entreprises. Siège à Paris La Défense."
+        },
+        {
+          "title": "Nuvio — Notes de frais et cartes de paiement pour les entreprises",
+          "url": "https://nuvio.test/",
+          "snippet": "Logiciel SaaS de gestion des dépenses professionnelles. 140 collaborateurs entre Paris et Madrid."
+        }
+      ]
+    },
+    {
+      "keywords": [
+        "industrie|industriel|manufacturing|usine",
+        "france|francais|francaise|francaises|french"
+      ],
+      "results": [
+        {
+          "title": "Ferrolux Industrie — Pièces métalliques de précision",
+          "url": "https://ferrolux.test/",
+          "snippet": "Fabricant de pièces métalliques de précision, 150 salariés à Saint-Étienne."
+        }
+      ]
+    }
+  ]
+}

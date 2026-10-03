@@ -1,0 +1,109 @@
+{
+  "name": "degraded-search",
+  "description": "Moteur dégradé : panne, résultats vides, résultats malformés et résultat dupliqué.",
+  "icp": "Trouve-moi 10 entreprises françaises de 20 à 200 salariés dans le SaaS B2B.",
+  "search_files": [
+    "companies.json",
+    "saas-france.json",
+    "signals.json"
+  ],
+  "search": [
+    {
+      "keywords": [
+        "saas",
+        "recrutement|recrute|hiring|emploi|careers|jobs"
+      ],
+      "priority": 10,
+      "error": "rate limit exceeded (simulated)"
+    },
+    {
+      "keywords": [
+        "saas",
+        "france|francais|francaise|francaises|french"
+      ],
+      "priority": 10,
+      "error": "search backend unavailable (simulated)"
+    },
+    {
+      "keywords": [
+        "saas",
+        "b2b",
+        "france|francais|francaise|francaises|french"
+      ],
+      "priority": 11,
+      "results": []
+    },
+    {
+      "keywords": [
+        "saas",
+        "lyon"
+      ],
+      "priority": 10,
+      "results": [
+        {
+          "title": "",
+          "url": "",
+          "snippet": "Résultat sans titre ni URL.",
+          "malformed": true
+        },
+        {
+          "title": "Acme SaaS",
+          "url": "acme-saas.test/careers",
+          "snippet": "URL sans schéma.",
+          "malformed": true
+        },
+        {
+          "title": "Lien de script",
+          "url": "javascript:void(0)",
+          "snippet": "URL non web.",
+          "malformed": true
+        },
+        {
+          "title": "Acme SaaS — Automatisez vos workflows finance et opérations",
+          "url": "https://acme-saas.test/",
+          "snippet": "Acme SaaS édite une plateforme SaaS d'automatisation des workflows pour les PME et ETI. 85 collaborateurs à Lyon."
+        }
+      ]
+    },
+    {
+      "keywords": [
+        "saas",
+        "lille"
+      ],
+      "priority": 10,
+      "results": [
+        {
+          "title": "Sendara — Emails transactionnels pour les entreprises",
+          "url": "https://sendara.test/",
+          "snippet": "Plateforme SaaS d'emails transactionnels. 35 personnes à Lille."
+        },
+        {
+          "title": "Sendara — Emails transactionnels pour les entreprises",
+          "url": "https://sendara.test/",
+          "snippet": "Plateforme SaaS d'emails transactionnels. 35 personnes à Lille."
+        },
+        {
+          "title": "Altiva — Gestion de flotte pour les entreprises",
+          "url": "https://altiva.test/",
+          "snippet": "Logiciel SaaS de gestion de flotte automobile. 45 salariés à Lille."
+        },
+        {
+          "title": "Nous recrutons — Sendara",
+          "url": "https://sendara.test/careers",
+          "snippet": "Sales Development Representative, Account Executive — Lille."
+        }
+      ]
+    }
+  ],
+  "pages": [],
+  "expect": {
+    "prospects": [],
+    "excluded": [],
+    "checks": [
+      "status partial (ou needs_input si aucune recherche n'aboutit) et warnings expliquant la panne du moteur",
+      "aucune entreprise ni URL inventée pour compenser les pannes",
+      "les résultats malformés sont ignorés, jamais cités comme sources",
+      "sendara.test n'apparaît qu'une fois malgré le résultat dupliqué"
+    ]
+  }
+}

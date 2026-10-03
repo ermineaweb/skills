@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Lance toute la stack : interface (Caddy), API (Go) et modèle : API en ligne
-# (MODEL_BASE_URL défini dans .env) ou Ollama local (par défaut).
+# Lance toute la stack : interface (Caddy), API (Go, avec les skills choisis
+# dans app.env / .env) et modèle : API en ligne (MODEL_BASE_URL défini dans
+# .env) ou Ollama local (par défaut).
 #
 #   ./run.sh          construit et démarre la stack, puis affiche l'URL
 #   ./run.sh logs     suit les logs
@@ -55,18 +56,23 @@ fi
 info "Construction et démarrage des services…"
 docker compose up --build -d
 
+skills=""
 if command -v curl >/dev/null; then
-  info "Attente de l'interface…"
+  # L'API répond via Caddy : interface et API sont prêtes. Une configuration
+  # de skill invalide empêche l'API de démarrer : le détail est dans les logs.
+  info "Attente de l'interface et de l'API…"
   for _ in $(seq 1 60); do
-    if curl -sf -o /dev/null "$url/"; then break; fi
+    if skills="$(curl -sf "$url/api/skills")"; then break; fi
     sleep 1
   done
-  curl -sf -o /dev/null "$url/" || die "L'interface ne répond pas. Voir : $0 logs"
+  [ -n "$skills" ] || die "L'interface ou l'API ne répond pas. Voir : $0 logs"
+  skills="$(printf '%s' "$skills" | sed -n 's/.*"skills":\[\(.*\)\].*/\1/p' | tr -d '"' | sed 's/,/, /g')"
 fi
 
 docker compose ps --format '  {{.Service}}: {{.Status}}'
 echo
 echo "✓ Stack démarrée : $url"
+[ -z "$skills" ] || echo "  Skills : $skills"
 [ -n "${MODEL_BASE_URL:-}" ] \
   || echo "  Sans GPU, la première réponse peut prendre une à deux minutes (chargement du modèle)."
 echo "  Logs : $0 logs    Arrêt : $0 stop"

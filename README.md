@@ -1,8 +1,13 @@
 # skills : agent IA modulaire, indépendant du modèle
 
-Socle Go pour des agents conversationnels composés de **skills**. Premier
-skill : [`prise-de-rendez-vous`](skills/prise-de-rendez-vous/SKILL.md)
-(rechercher des disponibilités, réserver, déplacer, annuler).
+Socle Go pour des agents conversationnels composés de **skills** :
+
+- [`prise-de-rendez-vous`](skills/prise-de-rendez-vous/SKILL.md) : rechercher
+  des disponibilités, réserver, déplacer, annuler ;
+- [`prospect-research`](skills/prospect-research/SKILL.md) : rechercher des
+  entreprises correspondant à un profil de client (ICP), avec sources et
+  niveau de confiance. Pour l'instant sur un moteur de recherche simulé
+  (entreprises fictives, aucun accès à Internet).
 
 - **Indépendant du modèle** : le runtime ne connaît que l'interface
   `model.Adapter`. Un adapter compatible OpenAI est fourni (OpenAI, Ollama,
@@ -16,10 +21,10 @@ skill : [`prise-de-rendez-vous`](skills/prise-de-rendez-vous/SKILL.md)
 
 ## Démarrage
 
-Prérequis : Docker avec Compose v2.20 ou plus récent.
+Prérequis : Docker avec Compose v2.24 ou plus récent.
 
 ```bash
-./run.sh          # démarre la stack puis affiche l'URL (http://localhost:8080)
+./run.sh          # démarre la stack puis affiche l'URL (http://localhost:8080) et les skills chargés
 ./run.sh logs     # suit les logs
 ./run.sh stop     # arrête la stack (le modèle téléchargé est conservé)
 ```
@@ -27,13 +32,13 @@ Prérequis : Docker avec Compose v2.20 ou plus récent.
 La stack ([compose.yaml](compose.yaml)) :
 
 ```
-navigateur ─► ui (Caddy) ─► /api/* ─► api (Go) ─► modèle (API en ligne, ou Ollama local)
+navigateur ─► ui (Caddy) ─► /api/* ─► api (Go, skills) ─► modèle (API en ligne, ou Ollama local)
 ```
 
 | Service | Rôle |
 |---|---|
 | `ui` | Caddy : sert `ui/public/` et relaie `/api/*` vers `api` |
-| `api` | API JSON Go : runtime + skill + calendrier mock (non exposée sur l'hôte) |
+| `api` | API JSON Go : runtime + skills choisis par la configuration (non exposée sur l'hôte) |
 | `ollama` | serveur de modèles local, API compatible OpenAI (non exposé sur l'hôte) ; mode local uniquement |
 | `ollama-pull` | télécharge le modèle au premier lancement, puis s'arrête ; mode local uniquement |
 
@@ -44,6 +49,12 @@ chaque réponse, ce qui est prohibitif sans GPU.
 Sans GPU, compter une à deux minutes pour la première réponse (chargement du
 modèle), puis quelques dizaines de secondes par message. Pour changer de
 modèle ou de réglages : `cp .env.example .env` puis modifier `MODEL`, etc.
+
+Configuration de l'application et des skills : [app.env](app.env) contient
+les valeurs par défaut (skills enregistrés, skills actifs d'office, réglages
+propres à chaque skill) ; `.env`, facultatif, les surcharge. Toutes ces
+variables sont transmises à l'API : ni `compose.yaml` ni `run.sh` ne
+connaissent les skills, et en ajouter un ne les modifie pas.
 
 ### Modèle en ligne gratuit (Gemini, Groq, OpenRouter…)
 
@@ -70,6 +81,32 @@ L'interface (HTML/CSS/JS sans framework) lit le fuseau horaire du navigateur.
 Elle affiche à part les opérations confirmées par le calendrier et la liste
 « Mes rendez-vous », lue dans l'agenda et non dans la réponse du modèle. Une
 case permet d'afficher les appels d'outils.
+
+Pour les démonstrations, un **agenda visuel** (vue semaine) montre à côté du
+chat les plages d'ouverture de chaque professionnel, les créneaux réservés
+(ceux des autres clients restent anonymes) et ceux de l'utilisateur. Il se met
+à jour après chaque message et se place sur la semaine du dernier rendez-vous
+réservé ou déplacé, qu'il met en évidence. Il est indépendant des skills : il
+lit le calendrier via `calendar.Viewer` et la route
+`GET /api/sessions/{id}/calendrier?date=AAAA-MM-JJ`, fournie par
+[api/calendarapi](api/calendarapi/calendarapi.go) quand le skill
+`prise-de-rendez-vous` est enregistré (sinon, l'agenda est simplement masqué). La case « Afficher l'agenda » le
+masque.
+
+Quand le skill `prospect-research` est enregistré, un panneau **Prospects**
+affiche le dernier résultat de recherche : prospects, effectifs, signaux
+datés, sources, exclusions et avertissements. Il est lu par
+`GET /api/sessions/{id}/prospects` dans le résultat accepté par le tool
+`enregistrer_prospects` (structure validée par le schéma de sortie, URL
+vérifiées : seules celles renvoyées par `web_search` ou lues par `web_fetch`
+sont acceptées), jamais dans la réponse écrite du modèle. Le scénario du
+moteur simulé se choisit avec `WEBSEARCH_SCENARIO` (voir
+[app.env](app.env)). Ce skill a des instructions longues et
+enchaîne de nombreux appels : utiliser un modèle en ligne, et compter
+plusieurs minutes avec un quota gratuit.
+
+L'interface n'affiche que ce qui concerne les skills chargés
+(`GET /api/skills`) : suggestions, agenda, panneau des prospects.
 
 > Si Docker répond `permission denied` alors que vous êtes dans le groupe
 > `docker`, `./run.sh` se relance automatiquement via `sg docker`.
@@ -99,30 +136,44 @@ eval $GO go run ./cmd/demo -tz Europe/Paris -now 2026-09-30T10:00:00+02:00   # d
 │   ├── openai/adapter.go        # adapter Chat Completions (HTTP, sans SDK)
 │   └── scripted/scripted.go     # modèle déterministe pour tests et démo
 ├── skills/
-│   └── prise-de-rendez-vous/
-│       ├── SKILL.md             # métadonnées (lues par le code) + documentation
-│       ├── instructions.md      # consignes données au modèle à l'activation
-│       ├── schemas/*.json       # définitions des 7 tools (JSON Schema)
-│       └── skill.go             # assemblage instructions + schémas + handlers
+│   ├── prise-de-rendez-vous/
+│   │   ├── SKILL.md             # métadonnées (lues par le code) + documentation
+│   │   ├── instructions.md      # consignes données au modèle à l'activation
+│   │   ├── schemas/*.json       # définitions des 7 tools (JSON Schema)
+│   │   └── skill.go             # assemblage instructions + schémas + handlers
+│   └── prospect-research/
+│       ├── SKILL.md             # métadonnées + consignes du modèle (indépendantes de l'application)
+│       ├── hote.md              # consignes propres à cette application (outils, remise du résultat)
+│       ├── references/          # schéma de sortie, cas de test
+│       ├── schemas/*.json       # web_search, web_fetch, enregistrer_prospects
+│       └── skill.go
 ├── tools/
 │   ├── calendar/                # handlers : recherche, réservation, modification, annulation, listes
-│   └── datetime/                # handler interpreter_date
+│   ├── datetime/                # handler interpreter_date
+│   ├── web/                     # handlers web_search, web_fetch + registre des URL vues
+│   └── prospects/               # handler enregistrer_prospects
 ├── services/
-│   └── calendar/
-│       ├── provider.go          # interface Provider (contrat métier)
-│       ├── mock.go              # MockProvider en mémoire + injection de pannes
-│       └── demo.go              # jeu de données de démonstration
+│   ├── calendar/
+│   │   ├── provider.go          # interface Provider (contrat métier)
+│   │   ├── mock.go              # MockProvider en mémoire + injection de pannes
+│   │   └── demo.go              # jeu de données de démonstration
+│   └── websearch/               # contrats SearchEngine / WebFetcher (skill prospect-research)
+│       └── websearchtest/       # mocks déterministes + univers fictif (testdata/prospect-research)
 ├── types/                       # Appointment, TimeSlot, Tool, Skill, codes d'erreur
 ├── jsonschema/                  # validateur JSON Schema (sous-ensemble)
 ├── datetime/                    # expressions françaises → intervalles ISO 8601
-├── api/                         # API JSON (Go) au-dessus du runtime
+├── app/                         # assemblage : skills choisis par la configuration (SKILLS, ACTIVE_SKILLS)
+├── api/                         # API JSON (Go) au-dessus du runtime, sans notion de skill
+│   ├── calendarapi/             # routes d'agenda de l'interface (rendez-vous, vue semaine)
+│   └── prospectsapi/            # route du dernier résultat de prospect-research
 ├── ui/
 │   ├── Caddyfile                # fichiers statiques + reverse proxy /api/* → api:8080
-│   └── public/                  # index.html, app.js, style.css
+│   └── public/                  # index.html, app.js, calendar.js (agenda), prospects.js, style.css
 ├── cmd/api, cmd/chat, cmd/demo  # points d'entrée
 ├── Dockerfile, compose.yaml     # image de l'API et stack
 ├── run.sh                       # lancement de la stack
-├── .env.example                 # configuration facultative
+├── app.env                      # configuration par défaut de l'application et des skills
+├── .env.example                 # surcharges facultatives (modèle, skills)
 └── docs/GUIDE.md                # architecture, extension, tests
 ```
 

@@ -1,0 +1,111 @@
+{
+  "entries": [
+    {
+      "keywords": [
+        "saas",
+        "recrutement|recrute|recrutent|hiring|emploi|emplois|careers|jobs|carrieres"
+      ],
+      "priority": 1,
+      "results": [
+        {
+          "title": "Carrières — Acme SaaS",
+          "url": "https://acme-saas.test/careers",
+          "snippet": "Notre équipe commerciale grandit. We are hiring: Account Executive, Sales Manager, Customer Success Manager."
+        },
+        {
+          "title": "Carrières — Nuvio",
+          "url": "https://nuvio.test/careers",
+          "snippet": "6 postes ouverts : Head of Sales Spain, Sales Development Representative, Account Executive…"
+        },
+        {
+          "title": "Nous recrutons — Sendara",
+          "url": "https://sendara.test/careers",
+          "snippet": "Sales Development Representative, Account Executive — Lille."
+        },
+        {
+          "title": "Carrières — Zenith Analytics",
+          "url": "https://zenith-analytics.test/careers",
+          "snippet": "Zenith Analytics recrute des commerciaux à Marseille."
+        }
+      ]
+    },
+    {
+      "keywords": [
+        "saas",
+        "levee|leve|fonds|funding|financement"
+      ],
+      "priority": 1,
+      "results": [
+        {
+          "title": "Nuvio lève 15 M€ — Tech News",
+          "url": "https://tech-news.test/2026/05/nuvio-serie-b",
+          "snippet": "Nuvio annonce une levée de fonds de 15 M€ en série B.",
+          "published_at": "2026-05-12"
+        },
+        {
+          "title": "Actualités — Logitrame",
+          "url": "https://logitrame.test/news",
+          "snippet": "Logitrame lève 2 M€ pour recruter 15 personnes.",
+          "published_at": "2019-03-04"
+        }
+      ]
+    },
+    {
+      "keywords": [
+        "saas",
+        "expansion|ouverture|bureau|bureaux|implantation"
+      ],
+      "priority": 1,
+      "results": [
+        {
+          "title": "Actualités — Nuvio",
+          "url": "https://nuvio.test/news",
+          "snippet": "Lancement de Nuvio Cards, ouverture du bureau de Madrid, partenariat avec Banque Horizon.",
+          "published_at": "2026-09-10"
+        },
+        {
+          "title": "Nuvio lève 15 M€ — Tech News",
+          "url": "https://tech-news.test/2026/05/nuvio-serie-b",
+          "snippet": "Nuvio annonce une levée de fonds de 15 M€ en série B.",
+          "published_at": "2026-05-12"
+        }
+      ]
+    },
+    {
+      "keywords": [
+        "saas",
+        "lancement|lance|launch|produit|nouveau"
+      ],
+      "priority": 1,
+      "results": [
+        {
+          "title": "Actualités — Nuvio",
+          "url": "https://nuvio.test/news",
+          "snippet": "Lancement de Nuvio Cards, ouverture du bureau de Madrid, partenariat avec Banque Horizon.",
+          "published_at": "2026-09-10"
+        }
+      ]
+    },
+    {
+      "keywords": [
+        "saas",
+        "partenariat|partenaire|partnership"
+      ],
+      "priority": 1,
+      "results": [
+        {
+          "title": "Nuvio s'allie à Banque Horizon — Tech News",
+          "url": "https://tech-news.test/2026/06/nuvio-partenariat-banque-horizon",
+          "snippet": "La fintech parisienne Nuvio annonce un partenariat avec Banque Horizon.",
+          "published_at": "2026-06-03"
+        },
+        {
+          "title": "Actualités — Nuvio",
+          "url": "https://nuvio.test/news",
+          "snippet": "Lancement de Nuvio Cards, ouverture du bureau de Madrid, partenariat avec Banque Horizon.",
+          "published_at": "2026-09-10"
+        }
+      ]
+    }
+  ]
+}

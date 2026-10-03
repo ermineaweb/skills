@@ -1,0 +1,17 @@
+{
+  "name": "web_search",
+  "description": "Recherche web. Renvoie des résultats (titre, URL, snippet, domaine). Les snippets ne sont pas vérifiés : lire la page avec web_fetch avant d'affirmer un fait.",
+  "parameters": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["query"],
+    "properties": {
+      "query": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 300,
+        "description": "Requête, en mots-clés (ex: éditeur SaaS B2B France recrutement)."
+      }
+    }
+  }
+}

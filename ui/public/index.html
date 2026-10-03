@@ -3,18 +3,19 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Prise de rendez-vous</title>
+  <title>Assistant</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header class="top">
-    <h1>Prise de rendez-vous</h1>
+    <h1>Assistant</h1>
     <span id="tz" class="muted"></span>
   </header>
 
   <section id="start" class="card start">
     <h2>Bienvenue</h2>
-    <p class="muted">Démonstration sur un agenda fictif : Paul Martin et Marie Dubois, jours ouvrés des deux prochaines semaines.</p>
+    <p class="muted">Démonstration sur des données fictives.</p>
+    <ul id="start-skills" class="start-skills muted small"></ul>
     <form id="start-form">
       <label for="nom">Votre nom <span class="muted">(facultatif)</span></label>
       <input id="nom" name="nom" autocomplete="name" maxlength="100" placeholder="Camille Durand">
@@ -27,11 +28,8 @@
     <section class="card chat" aria-label="Conversation">
       <ol id="messages" class="messages" aria-live="polite"></ol>
 
-      <div id="suggestions" class="suggestions">
-        <button type="button">Je voudrais un rendez-vous jeudi après-midi.</button>
-        <button type="button">Je voudrais voir Paul la semaine prochaine.</button>
-        <button type="button">Est-ce que vous avez quelque chose demain matin ?</button>
-      </div>
+      <!-- Suggestions des skills chargés (app.js). -->
+      <div id="suggestions" class="suggestions"></div>
 
       <form id="chat-form" class="composer">
         <input id="input" autocomplete="off" maxlength="2000" placeholder="Écrivez votre message…" aria-label="Message">
@@ -39,15 +37,51 @@
       </form>
     </section>
 
-    <aside class="card agenda" aria-label="Mes rendez-vous">
-      <h2>Mes rendez-vous</h2>
-      <p class="muted small">Lus directement dans le calendrier, pas dans la réponse de l'assistant.</p>
-      <ul id="agenda" class="agenda-list"></ul>
-      <p id="agenda-empty" class="muted">Aucun rendez-vous à venir.</p>
-      <label class="toggle small"><input id="show-tools" type="checkbox"> Afficher les appels d'outils</label>
-    </aside>
+    <div class="side">
+      <!-- Démo : vue semaine de l'agenda, lue dans le calendrier (hors skills). -->
+      <section id="calendar" class="card calendar" aria-label="Agenda de la semaine" hidden>
+        <div class="cal-head">
+          <div>
+            <h2>Agenda</h2>
+            <p id="cal-week" class="muted small"></p>
+          </div>
+          <div class="cal-nav">
+            <button type="button" id="cal-prev" class="ghost" aria-label="Semaine précédente">‹</button>
+            <button type="button" id="cal-today" class="ghost">Aujourd'hui</button>
+            <button type="button" id="cal-next" class="ghost" aria-label="Semaine suivante">›</button>
+          </div>
+        </div>
+        <ul id="cal-legend" class="cal-legend small"></ul>
+        <div class="cal-scroll">
+          <div id="cal-grid" class="cal-grid"></div>
+        </div>
+        <p id="cal-error" class="error small" hidden></p>
+      </section>
+
+      <!-- Skill prospect-research : dernier résultat validé par enregistrer_prospects. -->
+      <section id="prospects" class="card prospects" aria-label="Prospects" hidden>
+        <h2>Prospects</h2>
+        <p class="muted small">Résultat enregistré par l'assistant après vérification des sources, pas sa réponse écrite.</p>
+        <div id="prospects-body"></div>
+        <p id="prospects-error" class="error small" hidden></p>
+      </section>
+
+      <aside id="agenda-card" class="card agenda" aria-label="Mes rendez-vous" hidden>
+        <h2>Mes rendez-vous</h2>
+        <p class="muted small">Lus directement dans le calendrier, pas dans la réponse de l'assistant.</p>
+        <ul id="agenda" class="agenda-list"></ul>
+        <p id="agenda-empty" class="muted">Aucun rendez-vous à venir.</p>
+      </aside>
+
+      <div class="card options">
+        <label class="toggle small" hidden><input id="show-calendar" type="checkbox" checked> Afficher l'agenda</label>
+        <label class="toggle small"><input id="show-tools" type="checkbox"> Afficher les appels d'outils</label>
+      </div>
+    </div>
   </main>
 
+  <script src="calendar.js"></script>
+  <script src="prospects.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

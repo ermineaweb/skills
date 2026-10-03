@@ -1,0 +1,339 @@
+{
+  "entries": [
+    {
+      "keywords": [
+        "acme"
+      ],
+      "priority": 1,
+      "results": [
+        {
+          "title": "Acme SaaS — Automatisez vos workflows finance et opérations",
+          "url": "https://acme-saas.test/",
+          "snippet": "Acme SaaS édite une plateforme SaaS d'automatisation des workflows pour les PME et ETI. 85 collaborateurs à Lyon."
+        },
+        {
+          "title": "ACME Software — Logiciel de workflow",
+          "url": "https://acmesoftware.test/",
+          "snippet": "ACME Software, l'éditeur lyonnais de logiciels de workflow."
+        },
+        {
+          "title": "ACME Software — Annuaire Pro",
+          "url": "https://annuaire-pro.test/entreprises/acme-software",
+          "snippet": "ACME Software, éditeur de logiciels à Lyon. Effectif : 80 à 100 salariés."
+        },
+        {
+          "title": "ACME SAS — Registre des entreprises",
+          "url": "https://registre-entreprises.test/societe/900100200",
+          "snippet": "ACME SAS, Lyon. Édition de logiciels applicatifs. 50 à 99 salariés."
+        },
+        {
+          "title": "Carrières — Acme SaaS",
+          "url": "https://acme-saas.test/careers",
+          "snippet": "Notre équipe commerciale grandit. We are hiring: Account Executive, Sales Manager, Customer Success Manager."
+        }
+      ]
+    },
+    {
+      "keywords": [
+        "nuvio"
+      ],
+      "priority": 1,
+      "results": [
+        {
+          "title": "Nuvio — Notes de frais et cartes de paiement pour les entreprises",
+          "url": "https://nuvio.test/",
+          "snippet": "Logiciel SaaS de gestion des dépenses professionnelles. 140 collaborateurs entre Paris et Madrid."
+        },
+        {
+          "title": "Actualités — Nuvio",
+          "url": "https://nuvio.test/news",
+          "snippet": "Lancement de Nuvio Cards, ouverture du bureau de Madrid, partenariat avec Banque Horizon.",
+          "published_at": "2026-09-10"
+        },
+        {
+          "title": "Carrières — Nuvio",
+          "url": "https://nuvio.test/careers",
+          "snippet": "6 postes ouverts : Head of Sales Spain, Sales Development Representative, Account Executive…"
+        },
+        {
+          "title": "Nuvio s'allie à Banque Horizon — Tech News",
+          "url": "https://tech-news.test/2026/06/nuvio-partenariat-banque-horizon",
+          "snippet": "La fintech parisienne Nuvio annonce un partenariat avec Banque Horizon.",
+          "published_at": "2026-06-03"
+        },
+        {
+          "title": "Nuvio lève 15 M€ — Tech News",
+          "url": "https://tech-news.test/2026/05/nuvio-serie-b",
+          "snippet": "Nuvio annonce une levée de fonds de 15 M€ en série B.",
+          "published_at": "2026-05-12"
+        }
+      ]
+    },
+    {
+      "keywords": [
+        "ferrolux"
+      ],
+      "priority": 1,
+      "results": [
+        {
+          "title": "Ferrolux Industrie — Pièces métalliques de précision",
+          "url": "https://ferrolux.test/",
+          "snippet": "Fabricant de pièces métalliques de précision, 150 salariés à Saint-Étienne."
+        }
+      ]
+    },
+    {
+      "keywords": [
+        "tinyform"
+      ],
+      "priority": 1,
+      "results": [
+        {
+          "title": "Tinyform — Formulaires en ligne pour les entreprises",
+          "url": "https://tinyform.test/",
+          "snippet": "Outil SaaS de création de formulaires pour les équipes RH et commerciales. Bordeaux."
+        }
+      ]
+    },
+    {
+      "keywords": [
+        "hexacorp"
+      ],
+      "priority": 1,
+      "results": [
+        {
+          "title": "Hexacorp Software — L'ERP SaaS des grandes entreprises",
+          "url": "https://hexacorp.test/",
+          "snippet": "ERP en mode SaaS pour les grandes entreprises. Siège à Paris La Défense."
+        }
+      ]
+    },
+    {
+      "keywords": [
+        "datenwerk"
+      ],
+      "priority": 1,
+      "results": [
+        {
+          "title": "Datenwerk — Data pipelines for B2B teams",
+          "url": "https://datenwerk.test/",
+          "snippet": "B2B SaaS platform for data pipelines, trusted by many French mid-size companies."
+        }
+      ]
+    },
+    {
+      "keywords": [
+        "ombrelle"
+      ],
+      "priority": 1,
+      "results": [
+        {
+          "title": "Ombrelle — Maîtrisez le risque fournisseurs",
+          "url": "https://ombrelle.test/",
+          "snippet": "Solution SaaS B2B d'évaluation du risque fournisseurs, basée à Nantes."
+        },
+        {
+          "title": "Ombrelle — Annuaire Pro",
+          "url": "https://annuaire-pro.test/entreprises/ombrelle",
+          "snippet": "Ombrelle, édition de logiciels, Nantes. Effectif : non communiqué."
+        }
+      ]
+    },
+    {
+      "keywords": [
+        "kalista"
+      ],
+      "priority": 1,
+      "results": [
+        {
+          "title": "Kalista — Planification des tournées d'intervention",
+          "url": "https://kalista.test/",
+          "snippet": "Logiciel SaaS de planification des tournées pour les entreprises de services. Toulouse."
+        },
+        {
+          "title": "Kalista — Annuaire Pro",
+          "url": "https://annuaire-pro.test/entreprises/kalista",
+          "snippet": "Kalista, éditeur de logiciels à Toulouse. Effectif : 250 salariés."
+        }
+      ]
+    },
+    {
+      "keywords": [
+        "kalista",
+        "effectif|employes|employees|salaries|collaborateurs"
+      ],
+      "priority": 1,
+      "results": [
+        {
+          "title": "Kalista — Annuaire Pro",
+          "url": "https://annuaire-pro.test/entreprises/kalista",
+          "snippet": "Kalista, éditeur de logiciels à Toulouse. Effectif : 250 salariés."
+        },
+        {
+          "title": "Kalista — Planification des tournées d'intervention",
+          "url": "https://kalista.test/",
+          "snippet": "Logiciel SaaS de planification des tournées pour les entreprises de services. Toulouse."
+        }
+      ]
+    },
+    {
+      "keywords": [
+        "logitrame"
+      ],
+      "priority": 1,
+      "results": [
+        {
+          "title": "Logitrame — Gestion documentaire pour les entreprises",
+          "url": "https://logitrame.test/",
+          "snippet": "Logiciel SaaS de gestion électronique de documents pour les PME. Rennes."
+        },
+        {
+          "title": "À propos — Logitrame",
+          "url": "https://logitrame.test/about",
+          "snippet": "Fondée à Rennes en 2012. En 2018, l'équipe compte 40 collaborateurs."
+        },
+        {
+          "title": "Actualités — Logitrame",
+          "url": "https://logitrame.test/news",
+          "snippet": "Logitrame lève 2 M€ pour recruter 15 personnes.",
+          "published_at": "2019-03-04"
+        },
+        {
+          "title": "LOGITRAME — Registre des entreprises",
+          "url": "https://registre-entreprises.test/societe/900300400",
+          "snippet": "LOGITRAME, Rennes. 20 à 49 salariés."
+        }
+      ]
+    },
+    {
+      "keywords": [
+        "calmeo"
+      ],
+      "priority": 1,
+      "results": [
+        {
+          "title": "Calmeo — Planification des équipes soignantes",
+          "url": "https://calmeo.test/",
+          "snippet": "Plateforme SaaS de planification des équipes pour les cliniques. 60 collaborateurs à Grenoble."
+        },
+        {
+          "title": "CALMEO — Registre des entreprises",
+          "url": "https://registre-entreprises.test/societe/900500600",
+          "snippet": "CALMEO, Grenoble. Édition de logiciels applicatifs. 50 à 99 salariés."
+        }
+      ]
+    },
+    {
+      "keywords": [
+        "sendara"
+      ],
+      "priority": 1,
+      "results": [
+        {
+          "title": "Sendara — Emails transactionnels pour les entreprises",
+          "url": "https://sendara.test/",
+          "snippet": "Plateforme SaaS d'emails transactionnels. 35 personnes à Lille."
+        },
+        {
+          "title": "Nous recrutons — Sendara",
+          "url": "https://sendara.test/careers",
+          "snippet": "Sales Development Representative, Account Executive — Lille."
+        }
+      ]
+    },
+    {
+      "keywords": [
+        "zenith"
+      ],
+      "priority": 1,
+      "results": [
+        {
+          "title": "Zenith Analytics — Analytics SaaS pour les PME",
+          "url": "https://zenith-analytics.test/",
+          "snippet": "Plateforme SaaS B2B d'analytics pour les PME, basée à Marseille. 70 collaborateurs."
+        },
+        {
+          "title": "Carrières — Zenith Analytics",
+          "url": "https://zenith-analytics.test/careers",
+          "snippet": "Zenith Analytics recrute des commerciaux à Marseille."
+        }
+      ]
+    },
+    {
+      "keywords": [
+        "cloudnova"
+      ],
+      "priority": 1,
+      "results": [
+        {
+          "title": "Cloudnova — Plateforme SaaS B2B",
+          "url": "https://cloudnova.test/",
+          "snippet": "Cloudnova, plateforme SaaS B2B française, 50 employés, accélère la croissance des PME."
+        }
+      ]
+    },
+    {
+      "keywords": [
+        "fitloop"
+      ],
+      "priority": 1,
+      "results": [
+        {
+          "title": "Fitloop — Votre coach sportif dans votre poche",
+          "url": "https://fitloop.test/",
+          "snippet": "La start-up SaaS montpelliéraine Fitloop, 70 personnes, poursuit sa croissance."
+        }
+      ]
+    },
+    {
+      "keywords": [
+        "brightpay"
+      ],
+      "priority": 1,
+      "results": [
+        {
+          "title": "Brightpay France — Logiciel de paie SaaS",
+          "url": "https://brightpay-fr.test/",
+          "snippet": "Logiciel de paie en SaaS pour les entreprises françaises. Filiale du groupe Brightpay."
+        },
+        {
+          "title": "Brightpay Group — Payroll software",
+          "url": "https://brightpay.test/",
+          "snippet": "Payroll and HR software. 3,000 employees worldwide."
+        }
+      ]
+    },
+    {
+      "keywords": [
+        "altiva"
+      ],
+      "priority": 1,
+      "results": [
+        {
+          "title": "Altiva — Gestion de flotte pour les entreprises",
+          "url": "https://altiva.test/",
+          "snippet": "Logiciel SaaS de gestion de flotte automobile. 45 salariés à Lille."
+        },
+        {
+          "title": "Altiva Conseil — Conseil en stratégie",
+          "url": "https://altiva-conseil.test/",
+          "snippet": "Cabinet de conseil en stratégie pour les PME, Lille."
+        }
+      ]
+    },
+    {
+      "keywords": [
+        "registre|siren|societe",
+        "acme"
+      ],
+      "priority": 1,
+      "results": [
+        {
+          "title": "ACME SAS — Registre des entreprises",
+          "url": "https://registre-entreprises.test/societe/900100200",
+          "snippet": "ACME SAS, Lyon. Édition de logiciels applicatifs. 50 à 99 salariés."
+        }
+      ]
+    }
+  ]
+}

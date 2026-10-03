@@ -1,0 +1,17 @@
+{
+  "name": "web_fetch",
+  "description": "Lit une page web et renvoie son titre et son texte. Seule une page lue peut être citée comme source consultée.",
+  "parameters": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["url"],
+    "properties": {
+      "url": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 2000,
+        "description": "URL exacte, recopiée depuis un résultat de web_search ou une page déjà lue."
+      }
+    }
+  }
+}

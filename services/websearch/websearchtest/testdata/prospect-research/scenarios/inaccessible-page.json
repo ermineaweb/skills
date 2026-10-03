@@ -1,0 +1,37 @@
+{
+  "name": "inaccessible-page",
+  "description": "Pannes de lecture : Zenith en 500, page carrières d'Acme en 404, accueil de Nuvio en délai dépassé, carrières de Sendara en 503.",
+  "icp": "Trouve-moi 10 entreprises françaises de 20 à 200 salariés dans le SaaS B2B.",
+  "search_files": [
+    "companies.json",
+    "saas-france.json",
+    "signals.json"
+  ],
+  "search": [],
+  "pages": [
+    {
+      "url": "https://acme-saas.test/careers",
+      "status": 404
+    },
+    {
+      "url": "https://nuvio.test/",
+      "error": "connection timed out (simulated)"
+    },
+    {
+      "url": "https://sendara.test/careers",
+      "status": 503
+    }
+  ],
+  "expect": {
+    "prospects": [
+      "calmeo.test"
+    ],
+    "excluded": [],
+    "checks": [
+      "les URL en échec figurent dans search_log.unreachable_urls et jamais dans sources",
+      "zenith-analytics.test : aucune information affirmée sur la seule foi du snippet ; ni match ni confidence high",
+      "acme-saas.test : pas de signal de recrutement affirmé depuis le seul snippet de la page carrières",
+      "nuvio.test : informations éventuellement tirées des pages /news et /careers, accessibles"
+    ]
+  }
+}

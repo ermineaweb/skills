@@ -1,0 +1,80 @@
+{
+  "name": "duplicates",
+  "description": "Acme apparaît sous quatre noms et deux domaines (alias qui redirige) ; deux homonymes Altiva distincts.",
+  "icp": "Trouve des éditeurs SaaS B2B français de 20 à 200 salariés basés à Lyon ou à Lille.",
+  "search_files": [
+    "companies.json",
+    "saas-france.json",
+    "signals.json"
+  ],
+  "search": [
+    {
+      "keywords": [
+        "saas",
+        "france|francais|francaise|francaises|french"
+      ],
+      "priority": 5,
+      "results": [
+        {
+          "title": "Acme SaaS — Automatisez vos workflows finance et opérations",
+          "url": "https://acme-saas.test/",
+          "snippet": "Acme SaaS édite une plateforme SaaS d'automatisation des workflows pour les PME et ETI. 85 collaborateurs à Lyon."
+        },
+        {
+          "title": "ACME Software — Logiciel de workflow",
+          "url": "https://acmesoftware.test/",
+          "snippet": "ACME Software, l'éditeur lyonnais de logiciels de workflow."
+        },
+        {
+          "title": "ACME Software — Annuaire Pro",
+          "url": "https://annuaire-pro.test/entreprises/acme-software",
+          "snippet": "ACME Software, éditeur de logiciels à Lyon. Effectif : 80 à 100 salariés."
+        },
+        {
+          "title": "Carrières — Acme SaaS",
+          "url": "https://acme-saas.test/careers",
+          "snippet": "Notre équipe commerciale grandit. We are hiring: Account Executive, Sales Manager, Customer Success Manager."
+        },
+        {
+          "title": "ACME SAS — Registre des entreprises",
+          "url": "https://registre-entreprises.test/societe/900100200",
+          "snippet": "ACME SAS, Lyon. Édition de logiciels applicatifs. 50 à 99 salariés."
+        },
+        {
+          "title": "Altiva — Gestion de flotte pour les entreprises",
+          "url": "https://altiva.test/",
+          "snippet": "Logiciel SaaS de gestion de flotte automobile. 45 salariés à Lille."
+        },
+        {
+          "title": "Altiva Conseil — Conseil en stratégie",
+          "url": "https://altiva-conseil.test/",
+          "snippet": "Cabinet de conseil en stratégie pour les PME, Lille."
+        },
+        {
+          "title": "Sendara — Emails transactionnels pour les entreprises",
+          "url": "https://sendara.test/",
+          "snippet": "Plateforme SaaS d'emails transactionnels. 35 personnes à Lille."
+        }
+      ]
+    }
+  ],
+  "pages": [],
+  "expect": {
+    "prospects": [
+      "acme-saas.test",
+      "altiva.test",
+      "sendara.test"
+    ],
+    "excluded": [
+      "acmesoftware.test",
+      "altiva-conseil.test",
+      "annuaire-pro.test",
+      "registre-entreprises.test"
+    ],
+    "checks": [
+      "acme-saas.test apparaît une seule fois : ACME Software, ACME SAS, Acme SaaS et acmesoftware.test (redirection) sont fusionnés, avec toutes leurs sources",
+      "former_names d'Acme contient ACME Software",
+      "altiva.test et altiva-conseil.test ne sont pas fusionnés malgré le même nom"
+    ]
+  }
+}

@@ -17,17 +17,25 @@ Model  ≠  Agent Runtime  ≠  Skill  ≠  Tool  ≠  Business Service
 | **Skill** | `skills/prise-de-rendez-vous` | Assemble instructions (`instructions.md`), métadonnées (`SKILL.md`), schémas (`schemas/*.json`) et handlers | le modèle, l'agenda concret |
 | **Tool** | `tools/calendar`, `tools/datetime` | Frontière contrôlée : revalide, vérifie la provenance des identifiants, impose l'identité, exige une confirmation, traduit les erreurs | le modèle, l'agenda concret |
 | **Business Service** | `services/calendar` | Source de vérité : disponibilités, réservations, règles de conflit | l'IA sous toutes ses formes |
+| **Assemblage** | `app` | Enregistre les skills choisis par la configuration (`SKILLS`, `ACTIVE_SKILLS`), construit leurs services et leurs routes d'API | le fournisseur d'IA, l'interface (HTTP, terminal) |
+| **Interface** | `api` (+ `api/calendarapi`), `cmd/*` | HTTP ou terminal au-dessus du runtime ; `api` ne connaît aucun skill, les routes d'un domaine s'y branchent avec `api.WithSessionRoute` | le métier (sauf l'extension de domaine) |
 
 Les dépendances vont dans un seul sens :
 
 ```
-cmd/*  ──►  agent  ──►  model (interface)
-  │            │
-  │            └──►  types, jsonschema
+cmd/*  ──►  api ──► agent  ──►  model (interface)
+  │                   │
+  │                   └──►  types, jsonschema
   │
-  ├──►  model/openai            (choisi uniquement par le point d'entrée)
-  └──►  skills/prise-de-rendez-vous ──► tools/* ──► services/calendar ──► types
+  ├──►  model/openai    (choisi uniquement par le point d'entrée)
+  └──►  app ──► skills/prise-de-rendez-vous ──► tools/* ──► services/calendar ──► types
+              └► api/calendarapi ──► api, services/calendar
 ```
+
+Les points d'entrée ne connaissent aucun skill : `cmd/api` et `cmd/chat`
+choisissent le modèle et appellent `app.New`. Seule la démo scriptée
+(`cmd/demo`) cite le skill de rendez-vous, puisque son script en rejoue les
+tools.
 
 Aucun package sous `skills/`, `tools/` ou `services/` n'importe `model/…`.
 Changer de modèle ne touche donc ni au skill, ni aux tools, ni au calendrier.
@@ -59,6 +67,17 @@ Utilisateur : « Je prends 15h30. »
 La démo scriptée (`go run ./cmd/demo`, voir le README) affiche exactement ce déroulé.
 
 ## 3. Charger le skill
+
+Dans l'application, `app.New` fait cet assemblage d'après la configuration
+(`SKILLS`, `ACTIVE_SKILLS`, `CALENDAR_TZ`, `AUTO_BOOKING`) :
+
+```go
+a, err := app.New(llm, app.ConfigFromEnv())
+handler := api.New(a.Runtime, time.Now, a.APIOptions...).Handler()
+```
+
+Ce qu'il fait pour `prise-de-rendez-vous`, utilisable tel quel dans un autre
+programme :
 
 ```go
 cal, _ := calendar.NewDemoProvider(loc, time.Now)            // ou votre Provider réel
@@ -171,8 +190,9 @@ les tests : `SetUnavailable`, `FailNext(op, code)`, `UnconfirmedNext(op)`,
    les erreurs réseau/timeout remonter telles quelles (→ `CALENDAR_UNAVAILABLE`).
 6. **Confirmation** : ne mettez `Confirmed = true` qu'après la réponse positive
    de l'API, avec l'identifiant de l'événement créé.
-7. Brancher : `priserdv.New(priserdv.Config{Provider: monProvider})`. Aucune
-   autre ligne ne change.
+7. Brancher : dans `app/rendezvous.go`, remplacer
+   `calendar.NewDemoProvider(…)` par votre Provider (configuré par variables
+   d'environnement). Aucune autre ligne ne change.
 8. Tester : réutiliser les tests de `tools/calendar/tools_test.go` en les
    paramétrant par Provider (tests de contrat), plus des tests d'intégration
    contre un agenda de test.
@@ -284,7 +304,14 @@ services/billing/       # interface métier + mock
 3. Écrire `SKILL.md` (l'en-tête `description` indique **quand** activer le
    skill), `instructions.md` et les schémas.
 4. Implémenter `types.Skill` (voir `skills/prise-de-rendez-vous/skill.go`).
-5. `rt.RegisterSkill(facturation.New(…))`.
+5. Dans `app/`, ajouter un fichier `facturation.go` qui construit le skill à
+   partir de sa configuration (`Env.Getenv`) et, si l'interface en a besoin,
+   ses routes d'API (`api.WithSessionRoute`), puis l'ajouter à `available`
+   dans `app/app.go` (voir `app/rendezvous.go`).
+6. Documenter ses variables et leurs valeurs par défaut dans `app.env`.
+   L'activer : `SKILLS=prise-de-rendez-vous,facturation` (vide = tous), et
+   éventuellement `ACTIVE_SKILLS`. Ni les points d'entrée, ni `compose.yaml`,
+   ni `run.sh` ne changent.
 
 Le runtime ne change pas : il liste les skills dans le prompt système, expose
 `activer_skill` avec l'énumération des noms, et ne donne au modèle que les

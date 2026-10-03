@@ -1,14 +1,16 @@
-# Stack de prise de rendez-vous : ./run.sh (ou docker compose up --build -d)
+# Stack de l'agent : ./run.sh (ou docker compose up --build -d)
 #
-#   navigateur ─► ui (Caddy) ─► /api/* ─► api (Go) ─► modèle
+#   navigateur ─► ui (Caddy) ─► /api/* ─► api (Go, skills) ─► modèle
 #
 # Modèle : API en ligne compatible OpenAI (Gemini, Groq, OpenRouter…) si
 # MODEL_BASE_URL est défini, sinon Ollama local (profil « ollama », activé
 # automatiquement par run.sh ; à la main : docker compose --profile ollama up).
 #
-# Configuration facultative : .env (voir .env.example).
+# Configuration : app.env (valeurs par défaut de l'application et des
+# skills) puis .env, facultatif et prioritaire (voir .env.example). Ce
+# fichier ne connaît aucun skill : ajouter un skill ne le modifie pas.
 
-name: rendez-vous
+name: skills
 
 services:
   # Interface statique (ui/public/) servie par Caddy, qui relaie /api/* vers "api".
@@ -23,17 +25,24 @@ services:
       - api
     restart: unless-stopped
 
-  # API JSON (Go) : runtime + skill prise-de-rendez-vous + calendrier mock.
+  # API JSON (Go) : runtime + skills choisis par SKILLS (voir app/).
   # Non exposée sur l'hôte : accessible uniquement via Caddy.
+  # Reçoit toutes les variables de app.env puis de .env : la configuration
+  # des skills y est lue directement (voir app/).
   api:
     build: .
-    image: rendez-vous-api:latest
+    image: skills-api:latest
     command:
       - "-addr=:8080"
-      - "-calendar-tz=${CALENDAR_TZ:-Europe/Paris}"
       - "-warmup=${MODEL_WARMUP:-true}"
     expose:
       - "8080"
+    env_file:
+      - path: app.env
+      - path: .env
+        required: false
+    # Modèle : les variables MODEL_* de .env, traduites pour l'adapter
+    # compatible OpenAI (prioritaires sur env_file).
     environment:
       OPENAI_BASE_URL: ${MODEL_BASE_URL:-http://ollama:11434/v1}
       OPENAI_API_KEY: ${MODEL_API_KEY:-}

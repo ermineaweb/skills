@@ -1,0 +1,140 @@
+{
+  "pages": [
+    {
+      "url": "https://acme-saas.test/",
+      "file": "acme-home.html"
+    },
+    {
+      "url": "https://acme-saas.test/careers",
+      "file": "acme-careers.html"
+    },
+    {
+      "url": "https://acmesoftware.test/",
+      "redirect_to": "https://acme-saas.test/"
+    },
+    {
+      "url": "https://annuaire-pro.test/entreprises/acme-software",
+      "file": "annuaire-acme.html"
+    },
+    {
+      "url": "https://registre-entreprises.test/societe/900100200",
+      "file": "registre-acme.html"
+    },
+    {
+      "url": "https://nuvio.test/",
+      "file": "nuvio-home.html"
+    },
+    {
+      "url": "https://nuvio.test/news",
+      "file": "nuvio-news.html"
+    },
+    {
+      "url": "https://nuvio.test/careers",
+      "file": "nuvio-careers.html"
+    },
+    {
+      "url": "https://tech-news.test/2026/06/nuvio-partenariat-banque-horizon",
+      "file": "technews-nuvio-partenariat.html"
+    },
+    {
+      "url": "https://tech-news.test/2026/05/nuvio-serie-b",
+      "file": "technews-nuvio-serie-b.html"
+    },
+    {
+      "url": "https://ferrolux.test/",
+      "file": "ferrolux-home.html"
+    },
+    {
+      "url": "https://tinyform.test/",
+      "file": "tinyform-home.html"
+    },
+    {
+      "url": "https://hexacorp.test/",
+      "file": "hexacorp-home.html"
+    },
+    {
+      "url": "https://datenwerk.test/",
+      "file": "datenwerk-home.html"
+    },
+    {
+      "url": "https://ombrelle.test/",
+      "file": "ombrelle-home.html"
+    },
+    {
+      "url": "https://annuaire-pro.test/entreprises/ombrelle",
+      "file": "annuaire-ombrelle.html"
+    },
+    {
+      "url": "https://kalista.test/",
+      "file": "kalista-home.html"
+    },
+    {
+      "url": "https://annuaire-pro.test/entreprises/kalista",
+      "file": "annuaire-kalista.html"
+    },
+    {
+      "url": "https://logitrame.test/",
+      "file": "logitrame-home.html"
+    },
+    {
+      "url": "https://logitrame.test/about",
+      "file": "logitrame-about.html"
+    },
+    {
+      "url": "https://logitrame.test/news",
+      "file": "logitrame-news.html"
+    },
+    {
+      "url": "https://registre-entreprises.test/societe/900300400",
+      "file": "registre-logitrame.html"
+    },
+    {
+      "url": "https://calmeo.test/",
+      "file": "calmeo-home.html"
+    },
+    {
+      "url": "https://registre-entreprises.test/societe/900500600",
+      "file": "registre-calmeo.html"
+    },
+    {
+      "url": "https://sendara.test/",
+      "file": "sendara-home.html"
+    },
+    {
+      "url": "https://sendara.test/careers",
+      "file": "sendara-careers.html"
+    },
+    {
+      "url": "https://zenith-analytics.test/",
+      "status": 500
+    },
+    {
+      "url": "https://zenith-analytics.test/careers",
+      "status": 404
+    },
+    {
+      "url": "https://cloudnova.test/",
+      "file": "cloudnova-home.html"
+    },
+    {
+      "url": "https://fitloop.test/",
+      "file": "fitloop-home.html"
+    },
+    {
+      "url": "https://brightpay-fr.test/",
+      "file": "brightpay-fr-home.html"
+    },
+    {
+      "url": "https://brightpay.test/",
+      "file": "brightpay-group.html"
+    },
+    {
+      "url": "https://altiva.test/",
+      "file": "altiva-home.html"
+    },
+    {
+      "url": "https://altiva-conseil.test/",
+      "file": "altiva-conseil-home.html"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "name": "enregistrer_prospects",
+  "description": "Remet le résultat final de la recherche de prospects à l'application. Refusé si une URL n'a été renvoyée par aucun outil, si un source_id est inconnu ou si un prospect est en double : corriger puis rappeler.",
+  "parameters": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["resultat"],
+    "properties": {
+      "resultat": {
+        "description": "Objet complet décrit dans les instructions (format de sortie, schema_version 1.0). Le schéma est ajouté au chargement depuis references/output-schema.json."
+      }
+    }
+  }
+}

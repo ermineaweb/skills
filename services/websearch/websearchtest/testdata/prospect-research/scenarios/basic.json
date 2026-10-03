@@ -1,0 +1,37 @@
+{
+  "name": "basic",
+  "description": "Univers complet : prospects conformes, mauvais secteur, trop petite, trop grande, hors zone, snippet trompeur, faux positif B2C, homonyme.",
+  "icp": "Trouve-moi 10 entreprises françaises de 20 à 200 salariés dans le SaaS B2B.",
+  "search_files": [
+    "companies.json",
+    "saas-france.json",
+    "signals.json"
+  ],
+  "search": [],
+  "pages": [],
+  "expect": {
+    "prospects": [
+      "acme-saas.test",
+      "nuvio.test",
+      "calmeo.test",
+      "sendara.test"
+    ],
+    "excluded": [
+      "ferrolux.test",
+      "tinyform.test",
+      "hexacorp.test",
+      "datenwerk.test",
+      "cloudnova.test",
+      "fitloop.test",
+      "altiva-conseil.test",
+      "brightpay.test"
+    ],
+    "checks": [
+      "cloudnova.test : exclu d'après sa page (ESN, pas d'éditeur), malgré un snippet « plateforme SaaS B2B »",
+      "fitloop.test : exclu, clientèle de particuliers (B2C), bien que SaaS, français et de bonne taille",
+      "datenwerk.test : exclu, siège en Allemagne malgré des clients français",
+      "brightpay-fr.test : si retenu, effectif de la filiale (110), pas celui du groupe (3 000), et parent_company renseigné",
+      "zenith-analytics.test : site en erreur 500, jamais match ni confidence high"
+    ]
+  }
+}

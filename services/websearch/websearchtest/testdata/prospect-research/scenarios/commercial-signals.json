@@ -1,0 +1,27 @@
+{
+  "name": "commercial-signals",
+  "description": "Nuvio cumule recrutement, expansion, lancement produit, partenariat et levée de fonds ; Acme et Sendara recrutent ; Calmeo n'a aucun signal ; Logitrame n'a qu'un signal ancien.",
+  "icp": "Trouve des entreprises SaaS B2B françaises de 20 à 200 salariés présentant des signaux d'achat récents : recrutement commercial, expansion, lancement de produit ou levée de fonds.",
+  "search_files": [
+    "companies.json",
+    "saas-france.json",
+    "signals.json"
+  ],
+  "search": [],
+  "pages": [],
+  "expect": {
+    "prospects": [
+      "acme-saas.test",
+      "nuvio.test",
+      "sendara.test"
+    ],
+    "excluded": [],
+    "checks": [
+      "nuvio.test : signaux hiring, expansion (Madrid, 2026-07), product_launch (Nuvio Cards, 2026-09), partnership (Banque Horizon, 2026-06) et funding (série B, 2026-05), chacun daté et sourcé",
+      "acme-saas.test : signal hiring (Account Executive, Sales Manager, Customer Success Manager)",
+      "calmeo.test : signals vide s'il est retenu, sans conclure à une absence de besoin",
+      "logitrame.test : aucun signal de 2019 retenu comme récent",
+      "aucun signal formulé comme une intention d'achat"
+    ]
+  }
+}
