@@ -10,8 +10,11 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"os"
+	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -31,11 +34,19 @@ type Config struct {
 	Timeout time.Duration
 	// HTTPClient optionnel (proxy, tests).
 	HTTPClient *http.Client
+	// RateLimitWait : attente totale maximale, par appel, quand l'API répond
+	// 429 (quota par minute des offres gratuites). L'appel est retenté après
+	// le délai indiqué par l'API. Défaut : 2 min ; négatif : aucun nouvel
+	// essai.
+	RateLimitWait time.Duration
 }
+
+// DefaultRateLimitWait est la valeur par défaut de Config.RateLimitWait.
+const DefaultRateLimitWait = 2 * time.Minute
 
 // ConfigFromEnv lit la configuration dans l'environnement :
 // OPENAI_API_KEY, OPENAI_BASE_URL, OPENAI_MODEL, OPENAI_EXTRA_BODY (objet
-// JSON) et OPENAI_TIMEOUT (durée Go, ex: "5m").
+// JSON), OPENAI_TIMEOUT et OPENAI_RATE_LIMIT_WAIT (durées Go, ex: "5m").
 func ConfigFromEnv() (Config, error) {
 	cfg := Config{
 		APIKey:  os.Getenv("OPENAI_API_KEY"),
@@ -54,12 +65,23 @@ func ConfigFromEnv() (Config, error) {
 		}
 		cfg.Timeout = d
 	}
+	if raw := strings.TrimSpace(os.Getenv("OPENAI_RATE_LIMIT_WAIT")); raw != "" {
+		d, err := time.ParseDuration(raw)
+		if err != nil {
+			return Config{}, fmt.Errorf("openai: OPENAI_RATE_LIMIT_WAIT invalide %q (ex: 2m, 0s pour ne pas réessayer)", raw)
+		}
+		if d == 0 {
+			d = -1
+		}
+		cfg.RateLimitWait = d
+	}
 	return cfg, nil
 }
 
 // Adapter traduit model.Request au format Chat Completions.
 type Adapter struct {
-	cfg Config
+	cfg   Config
+	sleep func(context.Context, time.Duration) error
 }
 
 var _ model.Adapter = (*Adapter)(nil)
@@ -79,7 +101,21 @@ func New(cfg Config) (*Adapter, error) {
 	if cfg.HTTPClient == nil {
 		cfg.HTTPClient = &http.Client{Timeout: cfg.Timeout}
 	}
-	return &Adapter{cfg: cfg}, nil
+	if cfg.RateLimitWait == 0 {
+		cfg.RateLimitWait = DefaultRateLimitWait
+	}
+	return &Adapter{cfg: cfg, sleep: sleep}, nil
+}
+
+func sleep(ctx context.Context, d time.Duration) error {
+	t := time.NewTimer(d)
+	defer t.Stop()
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-t.C:
+		return nil
+	}
 }
 
 // ---- Format fil (wire format) spécifique au fournisseur ----
@@ -139,9 +175,31 @@ func (a *Adapter) Generate(ctx context.Context, req model.Request) (model.Respon
 	if err != nil {
 		return model.Response{}, err
 	}
+	var waited time.Duration
+	for attempt := 0; ; attempt++ {
+		resp, data, err := a.post(ctx, body)
+		if err != nil {
+			return model.Response{}, err
+		}
+		if resp.StatusCode == http.StatusTooManyRequests {
+			d := retryDelay(resp.Header, data, attempt)
+			if waited+d <= a.cfg.RateLimitWait {
+				slog.InfoContext(ctx, "quota du modèle atteint, nouvel essai", "attente", d.Round(time.Second), "essai", attempt+1)
+				if err := a.sleep(ctx, d); err != nil {
+					return model.Response{}, fmt.Errorf("openai: attente du quota interrompue: %w", err)
+				}
+				waited += d
+				continue
+			}
+		}
+		return a.decode(resp, data)
+	}
+}
+
+func (a *Adapter) post(ctx context.Context, body []byte) (*http.Response, []byte, error) {
 	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, a.cfg.BaseURL+"/chat/completions", bytes.NewReader(body))
 	if err != nil {
-		return model.Response{}, err
+		return nil, nil, err
 	}
 	httpReq.Header.Set("Content-Type", "application/json")
 	if a.cfg.APIKey != "" {
@@ -149,13 +207,36 @@ func (a *Adapter) Generate(ctx context.Context, req model.Request) (model.Respon
 	}
 	resp, err := a.cfg.HTTPClient.Do(httpReq)
 	if err != nil {
-		return model.Response{}, fmt.Errorf("openai: %w", err)
+		return nil, nil, fmt.Errorf("openai: %w", err)
 	}
 	defer resp.Body.Close()
 	data, err := io.ReadAll(io.LimitReader(resp.Body, 10<<20))
 	if err != nil {
-		return model.Response{}, fmt.Errorf("openai: lecture de la réponse: %w", err)
+		return nil, nil, fmt.Errorf("openai: lecture de la réponse: %w", err)
 	}
+	return resp, data, nil
+}
+
+// reRetryIn lit le délai indiqué dans le message d'erreur : « Please retry
+// in 10.84s » (Gemini), « Please try again in 1m2.5s » (Groq).
+var reRetryIn = regexp.MustCompile(`(?i)(?:retry|try again) in ((?:\d+h)?(?:\d+m)?[\d.]+(?:ms|s))`)
+
+// retryDelay renvoie l'attente avant un nouvel essai après une réponse 429 :
+// le délai indiqué par l'API (en-tête Retry-After ou message), avec une
+// seconde de marge, sinon 5 s, 10 s, 20 s… selon le nombre d'essais.
+func retryDelay(h http.Header, data []byte, attempt int) time.Duration {
+	if n, err := strconv.Atoi(strings.TrimSpace(h.Get("Retry-After"))); err == nil && n >= 0 {
+		return time.Duration(n)*time.Second + time.Second
+	}
+	if m := reRetryIn.FindSubmatch(data); m != nil {
+		if d, err := time.ParseDuration(string(m[1])); err == nil {
+			return d + time.Second
+		}
+	}
+	return 5 * time.Second << min(attempt, 4)
+}
+
+func (a *Adapter) decode(resp *http.Response, data []byte) (model.Response, error) {
 	if resp.StatusCode >= 300 {
 		return model.Response{}, fmt.Errorf("openai: HTTP %d: %s", resp.StatusCode, errorMessage(data, resp.StatusCode))
 	}

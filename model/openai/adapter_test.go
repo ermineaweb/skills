@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"skills/model"
 	"skills/types"
@@ -155,5 +156,69 @@ func TestToolCallExtraContentRoundTrip(t *testing.T) {
 	extra, _ := json.Marshal(sent["extra_content"])
 	if string(extra) != `{"google":{"thought_signature":"sig"}}` {
 		t.Fatalf("extra_content non renvoyé: %s", extra)
+	}
+}
+
+func TestRateLimitRetriesAfterAnnouncedDelay(t *testing.T) {
+	calls := 0
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		calls++
+		switch calls {
+		case 1:
+			w.WriteHeader(http.StatusTooManyRequests)
+			_, _ = io.WriteString(w, `[{"error":{"code":429,"message":"Quota exceeded. Please retry in 10.84s.","status":"RESOURCE_EXHAUSTED"}}]`)
+		case 2:
+			w.Header().Set("Retry-After", "3")
+			w.WriteHeader(http.StatusTooManyRequests)
+		default:
+			_, _ = io.WriteString(w, `{"choices":[{"message":{"role":"assistant","content":"ok"}}]}`)
+		}
+	}))
+	defer srv.Close()
+	a, _ := New(Config{BaseURL: srv.URL, Model: "m"})
+	var waits []time.Duration
+	a.sleep = func(_ context.Context, d time.Duration) error { waits = append(waits, d); return nil }
+
+	resp, err := a.Generate(context.Background(), model.Request{Messages: []model.Message{{Role: model.RoleUser, Content: "x"}}})
+	if err != nil || resp.Message.Content != "ok" {
+		t.Fatalf("resp = %+v, err = %v", resp, err)
+	}
+	if len(waits) != 2 || waits[0] != 11840*time.Millisecond || waits[1] != 4*time.Second {
+		t.Fatalf("attentes = %v", waits)
+	}
+}
+
+func TestRateLimitGivesUpBeyondBudget(t *testing.T) {
+	calls := 0
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		calls++
+		w.WriteHeader(http.StatusTooManyRequests)
+		_, _ = io.WriteString(w, `{"error":{"message":"Rate limit reached. Please try again in 1m30s."}}`)
+	}))
+	defer srv.Close()
+	a, _ := New(Config{BaseURL: srv.URL, Model: "m", RateLimitWait: 2 * time.Minute})
+	a.sleep = func(context.Context, time.Duration) error { return nil }
+
+	_, err := a.Generate(context.Background(), model.Request{Messages: []model.Message{{Role: model.RoleUser, Content: "x"}}})
+	if err == nil || !strings.Contains(err.Error(), "HTTP 429") || calls != 2 {
+		t.Fatalf("err = %v, appels = %d", err, calls)
+	}
+}
+
+func TestRetryDelay(t *testing.T) {
+	cases := []struct {
+		body    string
+		attempt int
+		want    time.Duration
+	}{
+		{"Please retry in 500ms", 0, 1500 * time.Millisecond},
+		{"Please try again in 2m59.5s", 0, 3*time.Minute + 500*time.Millisecond},
+		{"quota", 0, 5 * time.Second},
+		{"quota", 2, 20 * time.Second},
+	}
+	for _, c := range cases {
+		if got := retryDelay(http.Header{}, []byte(c.body), c.attempt); got != c.want {
+			t.Errorf("retryDelay(%q, %d) = %v, attendu %v", c.body, c.attempt, got, c.want)
+		}
 	}
 }

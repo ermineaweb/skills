@@ -19,6 +19,12 @@ const (
 	ErrCalendarUnavailable   ErrorCode = "CALENDAR_UNAVAILABLE"
 	ErrSearchUnavailable     ErrorCode = "SEARCH_UNAVAILABLE"
 	ErrPageUnavailable       ErrorCode = "PAGE_UNAVAILABLE"
+	ErrEventNotFound         ErrorCode = "EVENT_NOT_FOUND"
+	ErrEventAmbiguous        ErrorCode = "EVENT_AMBIGUOUS"
+	ErrEventConflict         ErrorCode = "EVENT_CONFLICT"
+	ErrEventNotSaved         ErrorCode = "EVENT_NOT_SAVED"
+	ErrNotAuthenticated      ErrorCode = "NOT_AUTHENTICATED"
+	ErrPermissionDenied      ErrorCode = "PERMISSION_DENIED"
 	ErrInternal              ErrorCode = "INTERNAL_ERROR"
 )
 
@@ -75,6 +81,18 @@ func DefaultHint(code ErrorCode) string {
 		return "Le moteur de recherche n'a pas répondu. Réessaie au plus une fois, éventuellement avec une autre requête ; sinon signale-le dans les avertissements. N'invente aucun résultat."
 	case ErrPageUnavailable:
 		return "La page n'a pas pu être lue. Ne la cite pas comme source consultée et n'en déduis rien ; cherche l'information ailleurs."
+	case ErrEventNotFound:
+		return "Aucun événement ne correspond dans l'agenda. Dis-le à l'utilisateur et propose de consulter l'agenda sur la période."
+	case ErrEventAmbiguous:
+		return "Plusieurs événements correspondent. Ne choisis pas : présente-les à l'utilisateur et demande lequel il vise."
+	case ErrEventConflict:
+		return "Le moment choisi chevauche d'autres événements. Signale-les à l'utilisateur et demande s'il confirme."
+	case ErrEventNotSaved:
+		return "L'opération n'a pas été enregistrée dans l'agenda ; l'agenda est inchangé. Propose de réessayer."
+	case ErrNotAuthenticated:
+		return "L'utilisateur n'est pas identifié : l'agenda n'est pas accessible. Invite-le à se connecter."
+	case ErrPermissionDenied:
+		return "L'utilisateur n'a pas le droit d'effectuer cette opération sur cet agenda. Dis-le-lui sans réessayer."
 	default:
 		return "Erreur interne. Informe l'utilisateur que l'opération n'a pas pu être réalisée."
 	}
@@ -82,5 +100,5 @@ func DefaultHint(code ErrorCode) string {
 
 func retryable(code ErrorCode) bool {
 	return code == ErrCalendarUnavailable || code == ErrSearchUnavailable || code == ErrBookingFailed ||
-		code == ErrUpdateFailed || code == ErrCancelFailed
+		code == ErrUpdateFailed || code == ErrCancelFailed || code == ErrEventNotSaved
 }

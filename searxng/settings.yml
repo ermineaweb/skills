@@ -1,0 +1,31 @@
+# Configuration de l'instance SearXNG de la stack (service searxng de
+# compose.yaml), utilisée par le skill prospect-research via son API JSON.
+# Seules les différences avec la configuration par défaut de SearXNG sont
+# listées ici.
+use_default_settings: true
+
+general:
+  instance_name: skills
+
+server:
+  # Instance privée : non exposée sur l'hôte, interrogée uniquement par le
+  # service api. La clé réelle est fournie par SEARXNG_SECRET (compose.yaml).
+  secret_key: "remplacee-par-SEARXNG_SECRET"
+  limiter: false
+  public_instance: false
+  image_proxy: false
+
+search:
+  # json : format lu par services/websearch/searxng.
+  formats:
+    - html
+    - json
+  safe_search: 0
+  # Prospects français par défaut ; le modèle peut préciser la langue dans
+  # sa requête.
+  default_lang: fr-FR
+  autocomplete: ""
+
+outgoing:
+  request_timeout: 5.0
+  max_request_timeout: 10.0

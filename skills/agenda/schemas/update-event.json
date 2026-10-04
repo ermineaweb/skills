@@ -1,0 +1,100 @@
+{
+  "name": "update_event",
+  "description": "Modifie un événement (horaire, titre, lieu, participants, notes, rappels). Les champs absents sont inchangés. Effectif uniquement si le résultat contient success: true.",
+  "parameters": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "event_id": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 100,
+        "description": "Identifiant (champ id) renvoyé par list_events ou create_event dans cette conversation. Jamais inventé."
+      },
+      "cible": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "quand"
+        ],
+        "description": "À défaut d'event_id : moment et mots-clés de l'événement visé. Si plusieurs événements correspondent, rien n'est fait et la liste est renvoyée (EVENT_AMBIGUOUS).",
+        "properties": {
+          "quand": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Moment de l'événement visé, tel que dit par l'utilisateur : « demain à 14h », « vendredi », « lundi matin »."
+          },
+          "texte": {
+            "type": "string",
+            "maxLength": 100,
+            "description": "Un ou deux mots distinctifs : nom d'un participant, mot du titre (« Paul », « réunion client »)."
+          }
+        }
+      },
+      "portee": {
+        "type": "string",
+        "enum": [
+          "occurrence",
+          "serie"
+        ],
+        "description": "Pour un événement récurrent uniquement : cette seule occurrence, ou toute la série. Ne jamais supposer : demander à l'utilisateur."
+      },
+      "titre": {
+        "type": "string",
+        "maxLength": 200,
+        "description": "Nouveau titre."
+      },
+      "debut": {
+        "type": "string",
+        "maxLength": 100,
+        "description": "Nouveau début : heure seule (« 16h », même jour) ou Expression de l'utilisateur (« demain à 14h », « vendredi 10h », « dans deux heures », « le 12 novembre à 9h30 ») ou ISO 8601. Convertie par l'outil dans le fuseau de l'utilisateur. La durée est conservée."
+      },
+      "fin": {
+        "type": "string",
+        "maxLength": 100,
+        "description": "Heure de fin (« 11h ») ou instant de fin. Sinon duree_minutes, sinon 1 heure."
+      },
+      "duree_minutes": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 20160,
+        "description": "Durée en minutes, si l'utilisateur la donne (« pendant 30 minutes »)."
+      },
+      "description": {
+        "type": "string",
+        "maxLength": 2000,
+        "description": "Nouvelles notes (\"\" pour effacer)."
+      },
+      "lieu": {
+        "type": "string",
+        "maxLength": 200,
+        "description": "Nouveau lieu (\"\" pour effacer)."
+      },
+      "participants": {
+        "type": "array",
+        "maxItems": 50,
+        "items": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "description": "Nouvelle liste complète des participants."
+      },
+      "rappels_minutes": {
+        "type": "array",
+        "maxItems": 5,
+        "items": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 40320
+        },
+        "description": "Nouvelle liste complète des rappels, en minutes avant le début ([] pour aucun)."
+      },
+      "ignorer_conflits": {
+        "type": "boolean",
+        "description": "true uniquement après que l'utilisateur a confirmé malgré un EVENT_CONFLICT."
+      }
+    }
+  }
+}

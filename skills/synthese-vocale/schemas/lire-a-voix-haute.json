@@ -1,0 +1,33 @@
+{
+  "name": "lire_a_voix_haute",
+  "description": "Prépare la lecture à voix haute d'un texte : l'interface de l'utilisateur génère et joue l'audio. Les langues, voix, vitesses et la longueur maximale acceptées sont indiquées dans les instructions.",
+  "parameters": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["texte"],
+    "properties": {
+      "texte": {
+        "type": "string",
+        "minLength": 1,
+        "description": "Texte exact à lire, sans balisage Markdown (ni astérisques, ni dièses, ni liens)."
+      },
+      "langue": {
+        "type": "string",
+        "description": "Langue du texte (BCP 47, ex : fr-FR). Facultatif : langue par défaut sinon."
+      },
+      "voix": {
+        "type": "string",
+        "description": "Identifiant d'une voix de cette langue. Facultatif : voix par défaut de la langue sinon. Uniquement si l'utilisateur demande une autre voix."
+      },
+      "vitesse": {
+        "type": "number",
+        "description": "Vitesse de lecture, 1 = normale. Facultatif. Uniquement si l'utilisateur demande une lecture plus lente ou plus rapide."
+      },
+      "format": {
+        "type": "string",
+        "enum": ["mp3", "opus", "wav"],
+        "description": "Format audio. Facultatif : uniquement si l'utilisateur le demande."
+      }
+    }
+  }
+}

@@ -40,8 +40,10 @@ type factory func(Env) (module, error)
 
 // available associe chaque skill disponible à sa construction.
 var available = map[string]factory{
+	agendaName:           agendaSkill,
 	rendezVousName:       rendezVous,
 	prospectResearchName: prospectResearch,
+	ttsName:              synthesisVoice,
 }
 
 // Available renvoie les noms des skills disponibles, triés.

@@ -1,0 +1,45 @@
+{
+  "name": "delete_event",
+  "description": "Supprime un événement de l'agenda. Effectif uniquement si le résultat contient success: true.",
+  "parameters": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "event_id": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 100,
+        "description": "Identifiant (champ id) renvoyé par list_events ou create_event dans cette conversation. Jamais inventé."
+      },
+      "cible": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "quand"
+        ],
+        "description": "À défaut d'event_id : moment et mots-clés de l'événement visé. Si plusieurs événements correspondent, rien n'est fait et la liste est renvoyée (EVENT_AMBIGUOUS).",
+        "properties": {
+          "quand": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Moment de l'événement visé, tel que dit par l'utilisateur : « demain à 14h », « vendredi », « lundi matin »."
+          },
+          "texte": {
+            "type": "string",
+            "maxLength": 100,
+            "description": "Un ou deux mots distinctifs : nom d'un participant, mot du titre (« Paul », « réunion client »)."
+          }
+        }
+      },
+      "portee": {
+        "type": "string",
+        "enum": [
+          "occurrence",
+          "serie"
+        ],
+        "description": "Pour un événement récurrent uniquement : cette seule occurrence, ou toute la série. Ne jamais supposer : demander à l'utilisateur."
+      }
+    }
+  }
+}

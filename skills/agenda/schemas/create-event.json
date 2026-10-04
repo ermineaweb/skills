@@ -1,0 +1,133 @@
+{
+  "name": "create_event",
+  "description": "Ajoute un événement à l'agenda personnel de l'utilisateur. Effectif uniquement si le résultat contient success: true.",
+  "parameters": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "titre",
+      "debut"
+    ],
+    "properties": {
+      "titre": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 200,
+        "description": "Objet court : « Rendez-vous avec Paul », « Déjeuner avec Marie »."
+      },
+      "debut": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 100,
+        "description": "Début. Expression de l'utilisateur (« demain à 14h », « vendredi 10h », « dans deux heures », « le 12 novembre à 9h30 ») ou ISO 8601. Convertie par l'outil dans le fuseau de l'utilisateur."
+      },
+      "fin": {
+        "type": "string",
+        "maxLength": 100,
+        "description": "Heure de fin (« 11h ») ou instant de fin. Sinon duree_minutes, sinon 1 heure."
+      },
+      "duree_minutes": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 20160,
+        "description": "Durée en minutes, si l'utilisateur la donne (« pendant 30 minutes »)."
+      },
+      "journee_entiere": {
+        "type": "boolean",
+        "description": "Événement sur la journée entière, sans horaire (debut = le jour ; fin = dernier jour inclus, facultatif)."
+      },
+      "description": {
+        "type": "string",
+        "maxLength": 2000,
+        "description": "Notes."
+      },
+      "lieu": {
+        "type": "string",
+        "maxLength": 200,
+        "description": "Lieu."
+      },
+      "participants": {
+        "type": "array",
+        "maxItems": 50,
+        "items": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "description": "Personnes concernées (noms ou adresses e-mail), telles que dites par l'utilisateur."
+      },
+      "rappels_minutes": {
+        "type": "array",
+        "maxItems": 5,
+        "items": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 40320
+        },
+        "description": "Rappels, en minutes avant le début (15 = un quart d'heure avant, 60 = une heure avant)."
+      },
+      "recurrence": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "frequence"
+        ],
+        "description": "Répétition. « Tous les lundis » : hebdomadaire + jours [lundi] ; « le premier lundi du mois » : mensuelle + jours [lundi] + position 1 ; « jusqu'en décembre » : jusqu_au = dernier jour de décembre.",
+        "properties": {
+          "frequence": {
+            "type": "string",
+            "enum": [
+              "quotidienne",
+              "hebdomadaire",
+              "mensuelle",
+              "annuelle"
+            ]
+          },
+          "intervalle": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 99,
+            "description": "Toutes les N périodes (2 = une semaine sur deux). Défaut 1."
+          },
+          "jours": {
+            "type": "array",
+            "maxItems": 7,
+            "items": {
+              "type": "string",
+              "enum": [
+                "lundi",
+                "mardi",
+                "mercredi",
+                "jeudi",
+                "vendredi",
+                "samedi",
+                "dimanche"
+              ]
+            }
+          },
+          "position": {
+            "type": "integer",
+            "minimum": -1,
+            "maximum": 5,
+            "description": "Mensuelle avec un seul jour : 1 = premier, 2 = deuxième… -1 = dernier."
+          },
+          "jusqu_au": {
+            "type": "string",
+            "maxLength": 100,
+            "description": "Dernier jour possible (AAAA-MM-JJ ou expression). Exclusif avec nombre."
+          },
+          "nombre": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000,
+            "description": "Nombre d'occurrences. Exclusif avec jusqu_au."
+          }
+        }
+      },
+      "ignorer_conflits": {
+        "type": "boolean",
+        "description": "true uniquement après que l'utilisateur a confirmé malgré un EVENT_CONFLICT."
+      }
+    }
+  }
+}

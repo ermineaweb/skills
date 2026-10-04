@@ -1,0 +1,30 @@
+{
+  "name": "list_events",
+  "description": "Consulte l'agenda de l'utilisateur sur une période : événements (occurrences des séries comprises), triés par début. Sert aussi à savoir s'il est disponible.",
+  "parameters": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "periode": {
+        "type": "string",
+        "maxLength": 100,
+        "description": "Période telle que dite par l'utilisateur : « demain », « cette semaine », « vendredi après-midi », « lundi », « ce week-end », « hier »."
+      },
+      "du": {
+        "type": "string",
+        "maxLength": 100,
+        "description": "À défaut de periode : début (ISO 8601 ou expression)."
+      },
+      "au": {
+        "type": "string",
+        "maxLength": 100,
+        "description": "À défaut de periode : fin (un jour seul est inclus)."
+      },
+      "texte": {
+        "type": "string",
+        "maxLength": 100,
+        "description": "Filtre facultatif : mots du titre, du lieu ou d'un participant."
+      }
+    }
+  }
+}

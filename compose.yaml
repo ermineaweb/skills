@@ -1,6 +1,8 @@
 # Stack de l'agent : ./run.sh (ou docker compose up --build -d)
 #
 #   navigateur ─► ui (Caddy) ─► /api/* ─► api (Go, skills) ─► modèle
+#                                                 ├──────────► searxng (recherche web)
+#                                                 └──────────► kokoro (synthèse vocale)
 #
 # Modèle : API en ligne compatible OpenAI (Gemini, Groq, OpenRouter…) si
 # MODEL_BASE_URL est défini, sinon Ollama local (profil « ollama », activé
@@ -52,11 +54,48 @@ services:
       OPENAI_EXTRA_BODY: ${MODEL_EXTRA_BODY:-{"temperature":0.7}}
       # Sur CPU, le premier appel (prompt complet) peut prendre plusieurs minutes.
       OPENAI_TIMEOUT: ${MODEL_TIMEOUT:-10m}
+      # Quota dépassé (HTTP 429) : attente maximale par appel avant d'abandonner.
+      OPENAI_RATE_LIMIT_WAIT: ${MODEL_RATE_LIMIT_WAIT:-2m}
     depends_on:
+      searxng:
+        condition: service_started
+      kokoro:
+        condition: service_started
       # Ignoré quand le profil « ollama » n'est pas actif (modèle en ligne).
       ollama-pull:
         condition: service_completed_successfully
         required: false
+    restart: unless-stopped
+
+  # Métamoteur de recherche web à disposition des skills, interrogé par "api"
+  # via SEARXNG_URL (app.env). Non exposé sur l'hôte. Configuration :
+  # searxng/settings.yml.
+  searxng:
+    image: searxng/searxng:2026.10.4-d48c4b555
+    volumes:
+      - ./searxng/settings.yml:/etc/searxng/settings.yml:ro
+      - searxng-cache:/var/cache/searxng
+    environment:
+      SEARXNG_BASE_URL: http://searxng:8080/
+      # Instance privée : une clé fixe suffit ; la changer dans .env si
+      # l'instance est un jour exposée.
+      SEARXNG_SECRET: ${SEARXNG_SECRET:-skills-searxng-instance-privee}
+    expose:
+      - "8080"
+    restart: unless-stopped
+
+  # Synthèse vocale (Kokoro-FastAPI, CPU), interrogée par "api" via
+  # TTS_BASE_URL (app.env). Non exposée sur l'hôte. Le modèle (~350 Mo) est
+  # inclus dans l'image. Avec un GPU NVIDIA : image kokoro-fastapi-gpu.
+  kokoro:
+    image: ghcr.io/remsky/kokoro-fastapi-cpu:v0.9.0
+    expose:
+      - "8880"
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:8880/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
     restart: unless-stopped
 
   # Serveur de modèles local, API compatible OpenAI. Non exposé sur l'hôte.
@@ -95,3 +134,4 @@ services:
 
 volumes:
   ollama:
+  searxng-cache:

@@ -4,10 +4,14 @@ Socle Go pour des agents conversationnels composés de **skills** :
 
 - [`prise-de-rendez-vous`](skills/prise-de-rendez-vous/SKILL.md) : rechercher
   des disponibilités, réserver, déplacer, annuler ;
+- [`agenda`](skills/agenda/SKILL.md) : gérer l'agenda personnel de
+  l'utilisateur (création, consultation, modification, suppression,
+  récurrences, rappels), en langage naturel ;
 - [`prospect-research`](skills/prospect-research/SKILL.md) : rechercher des
   entreprises correspondant à un profil de client (ICP), avec sources et
-  niveau de confiance. Pour l'instant sur un moteur de recherche simulé
-  (entreprises fictives, aucun accès à Internet).
+  niveau de confiance, sur le web réel (métamoteur SearXNG auto-hébergé) ;
+- [`synthese-vocale`](skills/synthese-vocale/SKILL.md) : lire un texte à voix
+  haute (moteur Kokoro local, interchangeable).
 
 - **Indépendant du modèle** : le runtime ne connaît que l'interface
   `model.Adapter`. Un adapter compatible OpenAI est fourni (OpenAI, Ollama,
@@ -33,12 +37,16 @@ La stack ([compose.yaml](compose.yaml)) :
 
 ```
 navigateur ─► ui (Caddy) ─► /api/* ─► api (Go, skills) ─► modèle (API en ligne, ou Ollama local)
+                                              ├──────────► searxng (recherche web)
+                                              └──────────► kokoro (synthèse vocale)
 ```
 
 | Service | Rôle |
 |---|---|
 | `ui` | Caddy : sert `ui/public/` et relaie `/api/*` vers `api` |
 | `api` | API JSON Go : runtime + skills choisis par la configuration (non exposée sur l'hôte) |
+| `searxng` | métamoteur de recherche auto-hébergé (API JSON), utilisé par `prospect-research` ; configuration : [searxng/settings.yml](searxng/settings.yml) (non exposé sur l'hôte) |
+| `kokoro` | synthèse vocale locale (Kokoro-FastAPI, CPU), utilisée par `synthese-vocale` (non exposé sur l'hôte) |
 | `ollama` | serveur de modèles local, API compatible OpenAI (non exposé sur l'hôte) ; mode local uniquement |
 | `ollama-pull` | télécharge le modèle au premier lancement, puis s'arrête ; mode local uniquement |
 
@@ -99,14 +107,87 @@ datés, sources, exclusions et avertissements. Il est lu par
 `GET /api/sessions/{id}/prospects` dans le résultat accepté par le tool
 `enregistrer_prospects` (structure validée par le schéma de sortie, URL
 vérifiées : seules celles renvoyées par `web_search` ou lues par `web_fetch`
-sont acceptées), jamais dans la réponse écrite du modèle. Le scénario du
-moteur simulé se choisit avec `WEBSEARCH_SCENARIO` (voir
-[app.env](app.env)). Ce skill a des instructions longues et
+sont acceptées), jamais dans la réponse écrite du modèle.
+
+Recherche web : `web_search` interroge le service `searxng` (`SEARXNG_URL`,
+voir [app.env](app.env)), qui agrège plusieurs moteurs publics sans clé
+d'API. Ces moteurs limitent les requêtes automatisées : un moteur peut être
+suspendu quelques minutes (`docker compose logs searxng`), les autres
+prennent le relais. `web_fetch` lit les pages directement depuis l'API, en
+HTTP, et refuse toute adresse non publique (réseau local, services de la
+stack) ; seuls le HTML et le texte sont lus, sans exécuter de JavaScript (les
+sites protégés par un défi anti-robots renvoient une page vide). Les tests
+n'accèdent pas à Internet : ils utilisent le moteur simulé de
+[websearchtest](services/websearch/websearchtest/).
+
+Ce skill a des instructions longues et
 enchaîne de nombreux appels : utiliser un modèle en ligne, et compter
 plusieurs minutes avec un quota gratuit.
 
 L'interface n'affiche que ce qui concerne les skills chargés
 (`GET /api/skills`) : suggestions, agenda, panneau des prospects.
+
+### Agenda personnel (`agenda`)
+
+« Ajoute un rendez-vous demain à 14h avec Paul », « Qu'est-ce que j'ai cette
+semaine ? », « Décale ma réunion de 10h à 15h », « Supprime le yoga de mardi ».
+Quatre tools : `create_event`, `list_events`, `update_event`, `delete_event`.
+Les dates sont dites en langage naturel et converties par le code (package
+`datetime`) dans le fuseau du navigateur ; un événement ambigu n'est jamais
+choisi à la place de l'utilisateur (`EVENT_AMBIGUOUS`). L'agenda est pour
+l'instant en mémoire (`agenda.MockProvider`, vidé au redémarrage) : un
+fournisseur réel (Google Calendar, CalDAV…) se branche en implémentant
+`agenda.Provider` ([services/agenda](services/agenda/agenda.go)) dans
+[app/agenda.go](app/agenda.go). Détails :
+[skills/agenda/SKILL.md](skills/agenda/SKILL.md).
+
+### Synthèse vocale (`synthese-vocale`)
+
+« Lis-moi cette réponse à voix haute. » : le modèle appelle
+`lire_a_voix_haute`, et l'interface affiche un lecteur audio (avec un bouton
+« Arrêter »). L'audio est généré **en flux** par le service `kokoro` et ne
+passe jamais par le modèle. Fonctionnement détaillé, paramètres et erreurs :
+[skills/synthese-vocale/SKILL.md](skills/synthese-vocale/SKILL.md).
+
+1. **Activer le skill** : il est enregistré par défaut (`SKILLS` vide). Pour
+   le limiter : `SKILLS=synthese-vocale` dans `.env` ; pour l'activer dès
+   l'ouverture : `ACTIVE_SKILLS=synthese-vocale`.
+2. **Démarrer Kokoro** : `./run.sh` lance le service `kokoro` (image
+   `kokoro-fastapi-cpu`, modèle inclus, 1 à 2 Go de RAM). Seul :
+   `docker compose up -d kokoro`. Il n'est pas exposé sur l'hôte.
+3. **URL** : `TTS_BASE_URL` (défaut `http://kokoro:8880`, nom du service sur
+   le réseau Docker).
+4. **Voix** : `TTS_VOICES=fr-FR=ff_siwis;en-US=af_heart,am_michael` ; la
+   première voix d'une langue est sa voix par défaut. Liste des voix de
+   Kokoro : `docker compose exec kokoro curl -s localhost:8880/v1/audio/voices`.
+5. **Langue** : `TTS_DEFAULT_LANGUAGE=fr-FR` ; le modèle précise `langue`
+   pour un texte dans une autre langue de `TTS_VOICES`.
+6. **Tester une synthèse** sans passer par le modèle :
+
+   ```bash
+   docker compose exec kokoro curl -s localhost:8880/v1/audio/speech \
+     -H 'Content-Type: application/json' \
+     -d '{"input":"Bonjour, ceci est un test.","voice":"ff_siwis","response_format":"mp3","lang_code":"f"}' > test.mp3
+   ```
+
+   Par l'application : `POST /api/sessions/{id}/messages` avec « Lis à voix
+   haute : … », puis `GET /api/sessions/{id}/audio/{audio_id}` (`audio_id`
+   dans l'effet `lire_a_voix_haute`).
+7. **Flux** : `TTS_STREAMING=true` (défaut). Kokoro découpe le texte en
+   morceaux d'environ 200 tokens : sur CPU, un texte de 800 caractères
+   commence à être lu après ~6 s au lieu de ~28 s ; un texte court arrive en
+   un seul morceau. Arrêter le lecteur annule la requête ; Kokoro s'arrête à
+   la fin du morceau en cours.
+8. **Remplacer Kokoro** : écrire un adaptateur `tts.Engine`
+   ([services/tts/tts.go](services/tts/tts.go)) dans `services/tts/<moteur>/`,
+   l'ajouter à `ttsProviders` ([app/tts.go](app/tts.go)) avec sa
+   configuration, ajouter son service dans `compose.yaml`, puis
+   `TTS_PROVIDER=<moteur>`. Le skill, le tool, l'API et l'interface ne
+   changent pas.
+
+Autres réglages ([app.env](app.env)) : `TTS_DEFAULT_FORMAT` (mp3, opus,
+wav), `TTS_DEFAULT_SPEED`, `TTS_MIN_SPEED`, `TTS_MAX_SPEED`,
+`TTS_MAX_TEXT_LENGTH`, `TTS_TIMEOUT`, `TTS_MAX_CONCURRENT`.
 
 > Si Docker répond `permission denied` alors que vous êtes dans le groupe
 > `docker`, `./run.sh` se relance automatiquement via `sg docker`.
@@ -141,23 +222,41 @@ eval $GO go run ./cmd/demo -tz Europe/Paris -now 2026-09-30T10:00:00+02:00   # d
 │   │   ├── instructions.md      # consignes données au modèle à l'activation
 │   │   ├── schemas/*.json       # définitions des 7 tools (JSON Schema)
 │   │   └── skill.go             # assemblage instructions + schémas + handlers
-│   └── prospect-research/
-│       ├── SKILL.md             # métadonnées + consignes du modèle (indépendantes de l'application)
-│       ├── hote.md              # consignes propres à cette application (outils, remise du résultat)
-│       ├── references/          # schéma de sortie, cas de test
-│       ├── schemas/*.json       # web_search, web_fetch, enregistrer_prospects
+│   ├── agenda/
+│   │   ├── SKILL.md             # métadonnées + documentation (garde-fous, erreurs, limites)
+│   │   ├── instructions.md      # consignes données au modèle à l'activation
+│   │   ├── schemas/*.json       # create_event, list_events, update_event, delete_event
+│   │   └── skill.go
+│   ├── prospect-research/
+│   │   ├── SKILL.md             # métadonnées + consignes du modèle (indépendantes de l'application)
+│   │   ├── hote.md              # consignes propres à cette application (outils, remise du résultat)
+│   │   ├── references/          # schéma de sortie, cas de test
+│   │   ├── schemas/*.json       # web_search, web_fetch, enregistrer_prospects
+│   │   └── skill.go
+│   └── synthese-vocale/
+│       ├── SKILL.md             # métadonnées + documentation (flux, paramètres, erreurs)
+│       ├── instructions.md      # consignes du modèle (complétées par les voix configurées)
+│       ├── schemas/*.json       # lire_a_voix_haute
 │       └── skill.go
 ├── tools/
 │   ├── calendar/                # handlers : recherche, réservation, modification, annulation, listes
 │   ├── datetime/                # handler interpreter_date
 │   ├── web/                     # handlers web_search, web_fetch + registre des URL vues
-│   └── prospects/               # handler enregistrer_prospects
+│   ├── agenda/                  # handlers create_event, list_events, update_event, delete_event
+│   ├── prospects/               # handler enregistrer_prospects
+│   └── tts/                     # handler lire_a_voix_haute
 ├── services/
 │   ├── calendar/
 │   │   ├── provider.go          # interface Provider (contrat métier)
 │   │   ├── mock.go              # MockProvider en mémoire + injection de pannes
 │   │   └── demo.go              # jeu de données de démonstration
+│   ├── agenda/                  # contrat Provider de l'agenda personnel + MockProvider, récurrences (RRULE)
+│   ├── tts/                     # contrat Engine + Service (validation, flux, journaux) ; skill synthese-vocale
+│   │   ├── kokoro/              # Engine : Kokoro-FastAPI
+│   │   └── ttstest/             # moteur factice des tests
 │   └── websearch/               # contrats SearchEngine / WebFetcher (skill prospect-research)
+│       ├── searxng/             # SearchEngine : API JSON de SearXNG
+│       ├── httpfetch/           # WebFetcher : client HTTP limité aux adresses publiques
 │       └── websearchtest/       # mocks déterministes + univers fictif (testdata/prospect-research)
 ├── types/                       # Appointment, TimeSlot, Tool, Skill, codes d'erreur
 ├── jsonschema/                  # validateur JSON Schema (sous-ensemble)
@@ -165,12 +264,14 @@ eval $GO go run ./cmd/demo -tz Europe/Paris -now 2026-09-30T10:00:00+02:00   # d
 ├── app/                         # assemblage : skills choisis par la configuration (SKILLS, ACTIVE_SKILLS)
 ├── api/                         # API JSON (Go) au-dessus du runtime, sans notion de skill
 │   ├── calendarapi/             # routes d'agenda de l'interface (rendez-vous, vue semaine)
-│   └── prospectsapi/            # route du dernier résultat de prospect-research
+│   ├── prospectsapi/            # route du dernier résultat de prospect-research
+│   └── ttsapi/                  # route de lecture des audios (flux) de synthese-vocale
 ├── ui/
 │   ├── Caddyfile                # fichiers statiques + reverse proxy /api/* → api:8080
 │   └── public/                  # index.html, app.js, calendar.js (agenda), prospects.js, style.css
 ├── cmd/api, cmd/chat, cmd/demo  # points d'entrée
 ├── Dockerfile, compose.yaml     # image de l'API et stack
+├── searxng/settings.yml         # configuration du métamoteur de recherche
 ├── run.sh                       # lancement de la stack
 ├── app.env                      # configuration par défaut de l'application et des skills
 ├── .env.example                 # surcharges facultatives (modèle, skills)

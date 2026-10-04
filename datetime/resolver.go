@@ -24,6 +24,7 @@ type Granularity string
 
 const (
 	GranularityWeek    Granularity = "semaine"
+	GranularityWeekend Granularity = "week_end"
 	GranularityDay     Granularity = "jour"
 	GranularityDayPart Granularity = "partie_de_journee"
 	GranularityHour    Granularity = "heure"
@@ -86,10 +87,30 @@ var (
 	reSlashDate = regexp.MustCompile(`\b(\d{1,2})/(\d{1,2})(?:/(\d{4}))?\b`)
 	reHour      = regexp.MustCompile(`\b(\d{1,2})\s*h\s*(\d{2})?\b`)
 	reWeekday   = regexp.MustCompile(`\b(lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche)\b`)
+	reIn        = regexp.MustCompile(`\bdans (\d{1,3}|une?|deux|trois|quatre|cinq|six|sept|huit|neuf|dix|quinze|vingt|trente) ?(minutes?|min|heures?|h|jours?|semaines?)\b`)
 )
 
+var numberWords = map[string]int{
+	"un": 1, "une": 1, "deux": 2, "trois": 3, "quatre": 4, "cinq": 5, "six": 6, "sept": 7,
+	"huit": 8, "neuf": 9, "dix": 10, "quinze": 15, "vingt": 20, "trente": 30,
+}
+
 // Resolve convertit une expression en intervalle, relativement à now, dans loc.
+// Une période passée est refusée (ErrPast) et une période en cours commence
+// à now : Resolve sert à chercher un moment à venir.
 func Resolve(expr string, now time.Time, loc *time.Location) (Period, error) {
+	return resolve(expr, now, loc, false)
+}
+
+// ResolveIncludingPast est Resolve sans le traitement du passé : la période
+// est renvoyée entière, même commencée ou passée (« aujourd'hui » couvre
+// toute la journée, « hier » est accepté). Elle sert à consulter ou à
+// enregistrer un agenda.
+func ResolveIncludingPast(expr string, now time.Time, loc *time.Location) (Period, error) {
+	return resolve(expr, now, loc, true)
+}
+
+func resolve(expr string, now time.Time, loc *time.Location, keepPast bool) (Period, error) {
 	if loc == nil {
 		return Period{}, ErrNoLocation
 	}
@@ -119,10 +140,49 @@ func Resolve(expr string, now time.Time, loc *time.Location) (Period, error) {
 			offset = 7
 		}
 		p = Period{Start: today, End: today.AddDate(0, 0, offset), Granularity: GranularityWeek}
+	case strings.Contains(s, " week end prochain ") || strings.Contains(s, " weekend prochain "):
+		// Samedi suivant, ou celui d'après si l'on est déjà le week-end.
+		start := today.AddDate(0, 0, (int(time.Saturday)-int(now.Weekday())+7)%7)
+		if now.Weekday() == time.Saturday || now.Weekday() == time.Sunday {
+			start = today.AddDate(0, 0, 7-(int(now.Weekday())+1)%7)
+		}
+		p = Period{Start: start, End: start.AddDate(0, 0, 2), Granularity: GranularityWeekend}
+	case strings.Contains(s, " week end ") || strings.Contains(s, " weekend "):
+		// Ce week-end : samedi et dimanche de la semaine en cours.
+		start := today.AddDate(0, 0, (int(time.Saturday)-int(now.Weekday())+7)%7)
+		if now.Weekday() == time.Sunday {
+			start = today.AddDate(0, 0, -1)
+		}
+		p = Period{Start: start, End: start.AddDate(0, 0, 2), Granularity: GranularityWeekend}
+	case reIn.MatchString(s):
+		m := reIn.FindStringSubmatch(s)
+		n, ok := numberWords[m[1]]
+		if !ok {
+			n, _ = strconv.Atoi(m[1])
+		}
+		switch unit := m[2]; {
+		case strings.HasPrefix(unit, "min"):
+			start := now.Add(time.Duration(n) * time.Minute).Truncate(time.Minute)
+			p = Period{Start: start, End: start.Add(time.Hour), Granularity: GranularityHour}
+		case unit == "h" || strings.HasPrefix(unit, "heure"):
+			start := now.Add(time.Duration(n) * time.Hour).Truncate(time.Minute)
+			p = Period{Start: start, End: start.Add(time.Hour), Granularity: GranularityHour}
+		case strings.HasPrefix(unit, "jour"):
+			setDay(today.AddDate(0, 0, n))
+		default:
+			setDay(today.AddDate(0, 0, 7*n))
+		}
+		// L'heure éventuelle (« dans 3 jours à 14h ») est lue après : le
+		// nombre de « dans 2 h » n'est pas une heure.
+		s = strings.Replace(s, m[0], " ", 1)
 	case strings.Contains(s, " apres demain "):
 		setDay(today.AddDate(0, 0, 2))
 	case strings.Contains(s, " demain "):
 		setDay(today.AddDate(0, 0, 1))
+	case strings.Contains(s, " avant hier "):
+		setDay(today.AddDate(0, 0, -2))
+	case strings.Contains(s, " hier "):
+		setDay(today.AddDate(0, 0, -1))
 	case strings.Contains(s, " aujourd hui ") || strings.Contains(s, " ce matin ") ||
 		strings.Contains(s, " cet apres midi ") || strings.Contains(s, " ce soir ") ||
 		strings.Contains(s, " ce midi "):
@@ -163,6 +223,12 @@ func Resolve(expr string, now time.Time, loc *time.Location) (Period, error) {
 		if hour != nil || hasPart {
 			p.Note = "Le moment de la journée n'est pas appliqué à une période d'une semaine : filtre les créneaux retournés."
 		}
+	case p.Granularity == GranularityWeekend:
+		if hour != nil || hasPart {
+			p.Note = "Le moment de la journée n'est pas appliqué au week-end entier : filtre les résultats."
+		}
+	case p.Granularity == GranularityHour:
+		// Instant relatif (« dans deux heures ») : déjà résolu.
 	case haveDay && hour != nil:
 		h, _ := strconv.Atoi(hour[1])
 		mi := 0
@@ -188,6 +254,9 @@ func Resolve(expr string, now time.Time, loc *time.Location) (Period, error) {
 		return Period{}, ErrUnrecognized
 	}
 
+	if keepPast {
+		return p, nil
+	}
 	if !p.End.After(now) {
 		return Period{}, ErrPast
 	}

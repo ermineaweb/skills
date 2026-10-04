@@ -16,6 +16,8 @@ $("tz").textContent = timezone ? `Fuseau : ${timezone}` : "Fuseau horaire inconn
 
 const RDV = "prise-de-rendez-vous";
 const PROSPECTS = "prospect-research";
+const TTS = "synthese-vocale";
+const AGENDA = "agenda";
 
 // Présentation de chaque skill : l'interface n'affiche que ceux que l'API a
 // chargés.
@@ -31,11 +33,26 @@ const SKILL_UI = {
   },
   [PROSPECTS]: {
     intro: "rechercher des entreprises correspondant à un profil de client",
-    detail: "Prospects : moteur de recherche simulé, entreprises fictives (aucun accès à Internet).",
+    detail: "Prospects : recherche sur le web réel (SearXNG auto-hébergé).",
     suggestions: [
       "Trouve-moi 5 entreprises françaises de 20 à 200 salariés dans le SaaS B2B.",
       "Trouve des éditeurs SaaS B2B français qui recrutent des commerciaux.",
       "Trouve des éditeurs SaaS B2B français basés à Lyon ou à Lille.",
+    ],
+  },
+  [AGENDA]: {
+    intro: "gérer votre agenda personnel",
+    detail: "Agenda : vos propres événements (agenda en mémoire, vidé au redémarrage).",
+    suggestions: [
+      "Ajoute un déjeuner avec Marie mercredi à midi.",
+      "Qu'est-ce que j'ai cette semaine ?",
+    ],
+  },
+  [TTS]: {
+    intro: "lire un texte à voix haute",
+    detail: "Synthèse vocale : moteur Kokoro exécuté localement.",
+    suggestions: [
+      "Lis-moi ta dernière réponse à voix haute.",
     ],
   },
 };
@@ -47,7 +64,45 @@ const EFFECT_LABELS = {
   modifier_rendez_vous: "Déplacement enregistré dans le calendrier",
   annuler_rendez_vous: "Annulation enregistrée dans le calendrier",
   enregistrer_prospects: "Résultat de recherche enregistré",
+  create_event: "Ajouté à l'agenda",
+  update_event: "Modifié dans l'agenda",
+  delete_event: "Supprimé de l'agenda",
 };
+
+// Lecteur d'un audio préparé par lire_a_voix_haute. L'audio est généré à la
+// lecture, en flux (GET /api/sessions/{id}/audio/{audio_id}) : « Arrêter »
+// coupe la requête, ce qui interrompt aussi la génération côté serveur.
+function addAudio(result) {
+  const li = document.createElement("li");
+  li.className = "effect audio";
+  const label = document.createElement("span");
+  label.textContent = `🔊 Lecture (${result.langue}, voix ${result.voix})`;
+  const audio = document.createElement("audio");
+  audio.controls = true;
+  audio.autoplay = true;
+  audio.preload = "auto";
+  audio.src = `/api/sessions/${sessionId}/audio/${encodeURIComponent(result.audio_id)}`;
+  const stop = document.createElement("button");
+  stop.type = "button";
+  stop.className = "ghost";
+  stop.textContent = "Arrêter";
+  stop.addEventListener("click", () => {
+    audio.pause();
+    audio.removeAttribute("src");
+    audio.load(); // abandonne le téléchargement en cours
+    stop.disabled = true;
+  });
+  audio.addEventListener("ended", () => { stop.disabled = true; });
+  audio.addEventListener("error", () => {
+    if (!audio.getAttribute("src")) return; // arrêt demandé
+    label.textContent = "Synthèse vocale indisponible pour le moment.";
+    audio.remove();
+    stop.remove();
+  });
+  li.append(label, audio, stop);
+  messages.append(li);
+  messages.scrollTop = messages.scrollHeight;
+}
 
 async function api(method, path, body) {
   const res = await fetch(path, {
@@ -80,8 +135,14 @@ function addItem(className, text) {
 
 function addEffects(effects) {
   for (const e of effects || []) {
+    if (e.tool === "lire_a_voix_haute" && e.result && e.result.audio_id) {
+      addAudio(e.result);
+      continue;
+    }
     const appt = e.result && e.result.appointment;
-    addItem("effect", `✓ ${EFFECT_LABELS[e.tool] || e.tool}${appt ? ` : ${appt.libelle}` : ""}`);
+    const ev = e.result && e.result.evenement; // skill agenda
+    const detail = appt ? appt.libelle : ev ? `${ev.titre}, ${ev.libelle}` : "";
+    addItem("effect", `✓ ${EFFECT_LABELS[e.tool] || e.tool}${detail ? ` : ${detail}` : ""}`);
     // L'agenda se place sur la semaine du rendez-vous concerné.
     // start est exprimé dans le fuseau de la session : sa date est locale.
     if (calendar && appt && appt.start) calendar.goTo(appt.start.slice(0, 10), appt.id);

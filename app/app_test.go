@@ -13,8 +13,25 @@ func env(vars map[string]string) func(string) string {
 	return func(k string) string { return vars[k] }
 }
 
+// valid renvoie une configuration complète, modifiée par overrides ("" :
+// variable absente).
+func valid(overrides map[string]string) func(string) string {
+	vars := map[string]string{
+		"CALENDAR_TZ":          "Europe/Paris",
+		"SEARXNG_URL":          "http://searxng:8080",
+		"TTS_PROVIDER":         "kokoro",
+		"TTS_BASE_URL":         "http://kokoro:8880",
+		"TTS_VOICES":           "fr-FR=ff_siwis;en-US=af_heart,am_adam",
+		"TTS_DEFAULT_LANGUAGE": "fr-FR",
+	}
+	for k, v := range overrides {
+		vars[k] = v
+	}
+	return env(vars)
+}
+
 func TestDefaultRegistersAllSkills(t *testing.T) {
-	a, err := app.New(scripted.New(), app.Config{Getenv: env(map[string]string{"CALENDAR_TZ": "Europe/Paris"})})
+	a, err := app.New(scripted.New(), app.Config{Getenv: valid(nil)})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -58,11 +75,21 @@ func TestConfigErrors(t *testing.T) {
 		{"fuseau absent", app.Config{Getenv: env(nil)}, "CALENDAR_TZ"},
 		{"fuseau invalide", app.Config{Getenv: env(map[string]string{"CALENDAR_TZ": "Mars/Olympus"})}, "CALENDAR_TZ"},
 		{"booléen invalide", app.Config{Getenv: env(map[string]string{"CALENDAR_TZ": "Europe/Paris", "AUTO_BOOKING": "oui"})}, "AUTO_BOOKING"},
+		{"SearXNG absent", app.Config{Skills: []string{"prospect-research"}, Getenv: env(nil)}, "SEARXNG_URL"},
+		{"TTS : moteur inconnu", app.Config{Getenv: valid(map[string]string{"TTS_PROVIDER": "espeak"})}, "TTS_PROVIDER"},
+		{"TTS : URL absente", app.Config{Getenv: valid(map[string]string{"TTS_BASE_URL": ""})}, "TTS_BASE_URL"},
+		{"TTS : voix mal formées", app.Config{Getenv: valid(map[string]string{"TTS_VOICES": "fr-FR"})}, "TTS_VOICES"},
+		{"TTS : langue par défaut sans voix", app.Config{Getenv: valid(map[string]string{"TTS_DEFAULT_LANGUAGE": "de-DE"})}, "langue par défaut"},
+		{"TTS : langue inconnue du moteur", app.Config{Getenv: valid(map[string]string{"TTS_VOICES": "fr-FR=ff_siwis;de-DE=x"})}, "de-DE"},
+		{"TTS : format inconnu", app.Config{Getenv: valid(map[string]string{"TTS_DEFAULT_FORMAT": "aiff"})}, "TTS_DEFAULT_FORMAT"},
+		{"TTS : vitesse incohérente", app.Config{Getenv: valid(map[string]string{"TTS_DEFAULT_SPEED": "3"})}, "vitesses"},
+		{"TTS : délai invalide", app.Config{Getenv: valid(map[string]string{"TTS_TIMEOUT": "deux minutes"})}, "TTS_TIMEOUT"},
+		{"SearXNG invalide", app.Config{Skills: []string{"prospect-research"}, Getenv: env(map[string]string{"SEARXNG_URL": "searxng:8080"})}, "SEARXNG_URL"},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			if c.cfg.Getenv == nil {
-				c.cfg.Getenv = env(map[string]string{"CALENDAR_TZ": "Europe/Paris"})
+				c.cfg.Getenv = valid(nil)
 			}
 			_, err := app.New(scripted.New(), c.cfg)
 			if err == nil || !strings.Contains(err.Error(), c.want) {
